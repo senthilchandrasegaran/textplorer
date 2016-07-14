@@ -1,0 +1,15 @@
+
+/web.config
+
+*.mp4
+*.m4v
+*.zip
+*.gz
+*.swp
+*.pptx
+git_commands.txt
+.tern-project
+
+node_modules/
+public/userlog/
+public/clicklog/

@@ -1,0 +1,62 @@
+Initial events (occur only once)
+  Load video and metadata
+  Populate transcript div
+  Populate taglist
+  Create transGraph
+  Load skWiki pathviewer
+
+Interaction events
+  Video Div
+    When mouse is clicked on video player seekbar
+      Update progressbar over pathviewer
+      Update progressbar over coded timeline view
+
+  Transcript Div
+    On mouseover on transcript ul
+      Highlight that line on transcript
+      Highlight corresponding rectangle on transGraph
+    On mouseclick on transcript ul
+      Do nothing
+    On CTRL + mouseclick on transcript ul
+      skip video to corresponding timestamp
+    On select text + right click
+      Bring up context menu of defined codes
+
+  TagList Div
+    On mouseover on span/text item
+      Highlight that text item on taglist
+      Find all occurrences of that word on transcript, highlight those
+      lines
+      Render all word occurrences on transcript as bold
+      Highlight corresponding rectangles on transGraph
+    On mouseclick on span/text item
+      Persistently highlight that text item on taglist
+      Find all occurrences of that word on transcript, persistently
+      highlight those lines
+      Render all word occurrences on transcript as bold
+      Persistently highlight corresponding rectangles on transGraph
+      TO DO:
+      Find elegant way to un-highlight items
+    On mouseleave from span/text item
+      Remove highlighting from transcript (if light)
+      Remove highlighting from transGraph (if light)
+    
+    Pathviewer Div
+      On mouseover on circle
+        Darken edges connected to the circle
+        Show thumbnail preview of sketch
+        TO DO: increase fade time of thumbnail sketch
+      On mouseclick on circle
+        Bring up a larger view of sketch
+      On mouseleave from circle
+        Get rid of edge darkness
+        Get rid of thumbnail/larger image view 
+        TO DO: better way to get rid of larger image view
+
+
+(To be continued)
+
+
+
+    
+      

@@ -1,0 +1,143 @@
+<html5>
+<head>
+<meta charset="utf-8">
+  <style type="text/css">
+    body{
+        font-family: 'Helvetica';
+        font-size: 8pt;
+        margin-left: 0px;
+        margin-right: 0px;
+        margin-top: 0px;
+        margin-bottom: 0px;
+    }
+
+    header h1{
+        font-size: 8pt;
+        color: #fff;
+        background-color: #1BA1E2;
+        padding: 20px;
+
+    }
+
+    table {
+    width:100%;
+    font-size: 10pt;
+    }
+    table, th, td {
+        border: 1px solid #b0b0b0;
+        border-collapse: collapse;
+    }
+    th, td {
+        padding: 5px;
+        text-align: left;
+    }
+    table.names tr:nth-child(even) {
+        background-color: azure;
+    }
+    table.names tr:nth-child(odd) {
+       background-color:#ffffff;
+    }
+    table.names th	{
+        background-color: #c1c1c1;
+    }
+    article
+    {
+        width: 50%;
+        margin:auto;
+        margin-top:1px;
+    }
+
+
+    input[type='file']{
+        margin:10px;
+        font-size: 10pt;
+    }
+  </style>
+  <script src="javascripts/libraries/jquery.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<h1>Upload Video and Transcript files to proceed</h1>
+
+<table>
+  <tr>
+    <th width=35%>File name</th>
+    <th width=10%>File Type</th>		
+    <th>Status</th>
+  </tr>
+  <tr>
+    <td>
+      <label for=<%= inputvideo.id %> >Select a video file: </label>
+      <input id="VideoFileBox" type="file" accept="video/*" />
+      <output id=<%= outputvideo.id %> />
+    </td>
+    <td>Video</td>
+    <td>
+      <div id="videoprog">
+        <progress id='videoProgress' max='100' value='0'></progress>
+        <span id=vidProg></span>
+        <span id=videoMB></span>
+    </div>
+    </td>		
+  </tr>
+  <tr>
+    <td>
+      <label for=<%= inputtrans.id %> >Select a transcript file: </label>
+      <input id=<%= inputtrans.id %> type="file" />
+      <output id=<%= outputtrans.id %> />
+    </td>
+    <td>Transcript</td>		
+    <td><div id='transProgress'></div></td>
+  </tr>
+  <tr>
+    <td>
+      <label for=<%= sketchlog.id %> >Select a sketch log file: </label>
+      <input id=<%= sketchlog.id %> type="file" />
+      <output id=<%= outputlog.id %> />
+    </td>
+    <td>Log File</td>		
+    <td><div id='logProgress'></div></td>
+  </tr>
+  <tr>
+    <td>
+      <label for="zipFileId" >Select zip file for sketches: </label>
+      <input id="ZipFileBox" type="file" />
+      <output id="zipFileOutput" />
+    </td>
+    <td>Sketch Files (zip)</td>		
+    <td>
+      <div id='sketchProgress'>
+        <progress id='imageProgress' max='100' value='0'></progress>
+        <span id=imgProg></span>
+        <span id=imageMB></span>
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <label for=<%= speechlog.id %> >Select speech log file: </label>
+      <input id=<%= speechlog.id %> type="file" />
+      <output id=<%= outputSpeechLog.id %> />
+    </td>
+    <td>CSV File</td>		
+    <td><div id='speechLogProgress'></div></td>
+  </tr>
+  <tr>
+    <td>
+      <label for=<%= activitylog.id %> >Select activity log file: </label>
+      <input id=<%= activitylog.id %> type="file" />
+      <output id=<%= outputActivityLog.id %> />
+    </td>
+    <td>CSV File</td>		
+    <td><div id='activityLogProgress'></div></td>
+  </tr>
+</table>
+
+<!-->
+<span id='UploadArea'>
+</span>
+</--!>
+
+<a href="/main">Click here to continue</a>
+<script type="text/javascript" src="javascripts/video_upload.js"></script>
+</script>
+</body>
