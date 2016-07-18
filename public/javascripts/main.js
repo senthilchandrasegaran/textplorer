@@ -77,10 +77,10 @@ var protocolGraphHeight = 0;
 
 // colors for each speaker in the data. Add to this list if speakers > 4
 var speakerColors = [
-        "#66c2a5",
-        "#adc0cb",
-        "#a6d854",
-        "#ffd92f"
+        "#a6cee3",
+        "#fb9a99",
+        "#b2df8a",
+        "#bc80bd"
     ];
 
 // Color list to use for code definitions
@@ -274,7 +274,7 @@ window.onload = function () {
   // determine div heights as specified in the html file
   bottomLeftHeight = $("#bottomleft").height();
   sketchesHeight = $("#sketches").height();
-  transGraphHeight = $("#transGraph").height();
+  transGraphWidth = $("#transGraph").width();
   sketchLogHeight = $("#sketchLog").height();
   speechLogHeight = $("#speechLog").height();
   activityLogHeight = $("#activityLog").height();
@@ -353,7 +353,7 @@ window.onload = function () {
       // annotable using the annotator library.  The setupPlugins
       // sets up annotator in the 'default' mode.
       jQuery(function ($) {
-        $('#transContent').height($('#bottomright').height()-70);
+        $('#transContent').height($('#center').height()-70);
         // the above line was added because the annotator-wrapper div
         // seems to be overwriting the transContent height settings.
       });
@@ -361,14 +361,16 @@ window.onload = function () {
       // player.ready(function () {
         // representation of lines in transcript overall window
         d3.select("#transGraphContent").selectAll("svg").remove();
-        var w = $('#transGraphContent').width()-2; //because of the border
+        var w = $('#transGraphContent').width()-0;
+        //because of the border
         var docLength = hmsToSec(captionArray[captionArray.length-1][0]);
         videoLenSec = docLength;
-        var h = $('#transGraphContent').height()-2; //because of the border
+        var h = $('#transGraphContent').height()-0;
+        //because of the border
         var transSvg = d3.select("#transGraphContent").append("svg")
                          .attr("width", w)
-                         .attr("height", h)
-                         .style({"border" : "1px solid #d0d0d0"});
+                         .attr("height", h);
+                         //.style({"border" : "1px solid #d0d0d0"});
         var speakerList_hardcode = ["F1", "F2", "F3", "F4"]
         var transcriptScale = d3.scale.linear()
                             .domain([0, docLength])
@@ -844,16 +846,16 @@ window.onload = function () {
       // }); player ready function
 
       // toggle the size of the transGraph div
-      toggleMinMax("transGraphTitle", "transGraph", "Graphical View of Transcript", transGraphHeight);
+      toggleMinMax("transGraphTitle", "transGraph", "Graphical View of Transcript", transGraphWidth);
 
       // toggle the size of the sketchLog div
-      toggleMinMax("sketchLogTitle", "sketchLog", "Sketch Participation Chart", sketchLogHeight);
+      // toggleMinMax("sketchLogTitle", "sketchLog", "Sketch Participation Chart", sketchLogHeight);
 
       // toggle the size of the speechLog div
-      toggleMinMax("speechLogTitle", "speechLog", "Speech Participation Chart", speechLogHeight);
+      // toggleMinMax("speechLogTitle", "speechLog", "Speech Participation Chart", speechLogHeight);
 
       // toggle the size of the activityLog div
-      toggleMinMax("activityLogTitle", "activityLog", "Activity Level Chart", activityLogHeight);
+      // toggleMinMax("activityLogTitle", "activityLog", "Activity Level Chart", activityLogHeight);
 
       /* TO ADD NEW DATASET
        * Make a copy of the below line of code,
@@ -1364,12 +1366,12 @@ window.onload = function () {
           // visible and doesn't overflow the displayed extents of
           // the page
           var menuXpos, menuYpos;
-          var bottomRightTopOffset = $('#bottomright')
+          var bottomRightTopOffset = $('#center')
                                        .offset().top;
-          var bottomRightLeftOffset = $('#bottomright')
+          var bottomRightLeftOffset = $('#center')
                                         .offset().left;
-          var bottomRightWidth = $('#bottomright').width();
-          var bottomRightHeight = $('#bottomright').height();
+          var bottomRightWidth = $('#center').width();
+          var bottomRightHeight = $('#center').height();
           var contextMenuWidth = $('.contextmenu')
                                     .html(menuItems)
                                     .width();
@@ -1407,7 +1409,7 @@ window.onload = function () {
                  "left": menuXpos + "px",
                  "top": menuYpos + "px",
                  "background": "white",
-                 "border": "solid 1px #c2c2c2",
+                 "border": "solid 1px #c9c9c9",
                  "z-index": 100,
                  "box-shadow": "3px 3px 5px 0px " + shadowGrey
              });
@@ -1489,24 +1491,26 @@ window.onload = function () {
           d3.select("#protocolGraphContent")
             .selectAll("svg")
             .remove();
-          var protoGraphWidth = $('#protocolGraphContent').width()-2;
-          var protoGraphHeight = $('#protocolGraphContent').height()-2;
+          var protoGraphWidth = $('#protocolGraphContent').width()-0;
+          var protoGraphHeight = $('#protocolGraphContent').height()-0;
           var protocolSVG = d3.select("#protocolGraphContent")
                               .append("svg")
                               .attr("width", protoGraphWidth)
-                              .attr("height", protoGraphHeight)
-                              .style({"border" : "1px solid #d0d0d0"});
+                              .attr("height", protoGraphHeight);
+                              //.style({"border" : "1px solid #c9c9c9"});
 
             var margin = { top: 5, right: 0, bottom: 5, left: 0 };
 
-            var protoX = d3.scale.linear()
-              .domain([0, videoLenSec])
-              // convert to scale that adapts
-              .range([0, protoGraphWidth-margin.left-margin.right]);
-            var protoY = d3.scale.ordinal()
-              .domain(protocolList) // convert ditto
-              .rangePoints([margin.top,
-                           protoGraphHeight - margin.bottom], 0);
+            var protoY = d3.scale.linear()
+                           .domain([0, docLength])
+                           // convert to scale that adapts
+                           .range([0, protoGraphHeight-
+                                      margin.top-margin.bottom]);
+            var protoX = d3.scale.ordinal()
+                           .domain(protocolList) // convert ditto
+                           .rangePoints([margin.left,
+                                         protoGraphWidth-margin.right],
+                                         0);
             var proSpace = 10;
             // clickStatus below determines the d3 rectangles' behavior
             // with respect to the mouseover.
@@ -1518,17 +1522,17 @@ window.onload = function () {
               var d = {};
               d.startTime = hmsToSec(rowData[1]);
               d.endTime = hmsToSec(rowData[2]);
-              d.x = protoX(d.startTime);
+              d.y = protoY(d.startTime);
               d.code = rowData[3];
               d.codeIndex = protocolList.indexOf(d.code);
-              d.y = (d.codeIndex *
-                     (protoGraphHeight-proSpace)/
+              d.x = (d.codeIndex *
+                     (protoGraphWidth-proSpace)/
                      (protocolList.length - 1)
                     ) + proSpace / 2;
               d.id = d.code + "line" + rowData[0];
               d.lineID = "line" + rowData[0];
-              d.width = 2;
-              d.height = (protoGraphHeight-proSpace)/
+              d.height = 2;
+              d.width  = (protoGraphWidth-proSpace)/
                          (protocolList.length - 1);
               d.fill = protocolColorList[d.codeIndex];
               d.spanIds = rowData[4];
@@ -1563,7 +1567,7 @@ window.onload = function () {
                     $("#"+d.spanIds[si])
                       .css({"background-color":d.fill});
                   }
-                  d3.select(this).attr('width', 3);
+                  d3.select(this).attr('height', 3);
                   d3.select(this).attr('fill', boldHighlightColor);
                   d3.select(this).attr('fill-opacity', 1);
                 }
@@ -1575,7 +1579,7 @@ window.onload = function () {
                     $("#"+d.spanIds[si])
                       .css({"background-color":"rgba(0,0,0,0)"});
                   }
-                  d3.select(this).attr('width', d.width);
+                  d3.select(this).attr('height', d.height);
                   d3.select(this).attr('fill', d.fill);
                   d3.select(this).attr('fill-opacity', 0.7);
                 }

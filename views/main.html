@@ -4,7 +4,8 @@
   <meta charset="utf-8">
     <link rel="stylesheet" type="text/css"
           href="stylesheets/maininterface.css">
-  <title>VizScribe</title>
+  <title>GT Helper</title>
+  <link rel="icon" href="../public/stylesheets/images/favicon.png">
   <script src="javascripts/libraries/jquery.js"></script>
   <script src="javascripts/libraries/jquery.csv-0.71.min.js"></script>
   <script src="javascripts/libraries/jquery-ui.min.js"></script>
@@ -24,117 +25,124 @@
   </script>
 </head>
 <body>
-  <div id="right">
-    <div id="topfarright">
-      <div id="tagListTitle">
-        <p class="headings">
-          Word Cloud from Transcript</p>
-        <p>Click on word for occurrences; Ctrl-click for concordance</p>
-      </div>
-      <div id="tagList"></div>
-    </div>
-    <div id="topright">
-    <section class="wrapper">
-      <p class="headings">Codes</p>
-      <p>Define and Edit Codes<p>
-      <ul class="tabs">
-        <li><a href="#tab1">View</a></li>
-        <li><a href="#tab2">Add/ Edit</a></li>
-        <li><a href="#tab3">Distribution</a></li>
-      </ul>
-      <div class="clr"></div>
-      <section class="block">
-        <article id="tab1">
-          <div id="protoView">
+  <div id = "left">
+
+    <div id="docAbstractions">
+        <div id="transGraphTitle"
+             class="header timeSequenceVizTitle">
+          <p class="vizText">
+            Text
+          </p>
+        </div>
+        <div id="transGraph" class="timeSequenceViz">
+          <div id="transGraphContent" class="timeSequenceVizContent">
           </div>
-        </article>
-        <article id="tab2">
-          <div id="protoEdit">
+          <div id="transGraphScrubber" class="timeSequenceVizScrubber">
+          </div>
+        </div>
+        <div id="protoColGraphTitle"
+             class="header timeSequenceVizTitle">
+          <div class="vizText">
+            Codes
+          </div>
+        </div>
+        <div id="protocolGraph" class="timeSequenceViz">
+          <div id="protocolGraphContent">
+          </div>
+          <div id="protocolGraphScrubber">
+          </div>
+        </div>
+    </div>
+
+  </div>
+
+  <div id="center">
+    <div id="transTitle">
+      <div id="transTitleText">
+        <p class="blockHead">Text Display</p>
+        <p class="blockSubHead">Select lines to update word cloud;
+        right-click selection to assign code</p>
+      </div>
+    </div>
+    <div id="transcriptDiv">
+        <div id="transContent">
+          <table id="transTable"></table>
+        </div>
+    </div>
+  </div>
+
+  <div id="right">
+
+    <div id="codeDiv">
+      <section class="wrapper">
+        <div id="codeTitle">
+          <p class="blockHead">Codes</p>
+          <p class="blockSubHead">Define and Edit Codes</p>
+        </div>
+        <ul class="tabs">
+          <li><a href="#tab1">View</a></li>
+          <li><a href="#tab2">Add/ Edit</a></li>
+          <li><a href="#tab3">Distribution</a></li>
+        </ul>
+        <div class="clr"></div>
+        <section class="block">
+          <article id="tab1">
+            <div id="protoView"> </div>
+          </article>
+          <article id="tab2">
+            <div id="protoEdit">
               <textarea id="protocolTextArea"
                         class = "textinput"
-                        rows="20"
+                        rows="15"
                         cols="35"
                         value = ""
                         placeholder="Enter each code on a new line."
                         spellcheck="true">
               </textarea>
-          </div>
-        </article>
-        <article id="tab3">
-          <div id="totalProtocols">
-          </div>
-        </article>
+            </div>
+          </article>
+          <article id="tab3">
+            <div id="totalProtocols"> </div>
+          </article>
+        </section>
       </section>
-    </section>
-  </div>
-    <div id="bottomright">
-      <div id="transTitle">
-        <div id="transTitleText">
-        Transcript
-        </div>
-      </div>
-      <div id="transcriptDiv">
-          <div id="transContent">
-            <table id="transTable"></table>
-          </div>
-      </div>
     </div>
+
+    <div id="altDisplays">
+      <div id="tagListTitle">
+        <p class="blockHead">Word Cloud from Transcript</p>
+        <p class="blockSubHead">
+          Click on word for occurrences; Ctrl-click for concordance
+        </p>
+      </div>
+      <div id="tagList"></div>
+    </div>
+
   </div>
 
-    <div id = "left">
-      <div id="bottomleft">
-          <div id="transGraphTitle" class="header timeSequenceVizTitle">
-            Graphical View of Transcript [click to contract view]
-          </div>
-          <div id="transGraph" class="timeSequenceViz">
-            <div id="transGraphContent" class="timeSequenceVizContent">
-            </div>
-            <div id="transGraphScrubber" class="timeSequenceVizScrubber">
-            </div>
-          </div>
-          <!-- TO ADD NEW DATASET, uncomment below block of code
-            (make a copy first) -->
-          <!--
-          <div id="newDataSeriesTitle" class="header timeSequenceVizTitle">
-            New Data Time Sequence Chart [click to contract view]
-          </div>
-          <div id="newDataSeries" class="timeSequenceViz">
-            <div id="newDataSeriesContent" class="timeSequenceVizContent"> </div>
-            <svg id="newDataSeriesScrubber" class="timeSequenceVizScrubber"> </svg>
-          </div>
-          -->
-          <div id="protocolGraphTitle">
-            Code Timeline
-          </div>
-          <div id="protocolGraph">
-            <div id="protocolGraphContent">
-            </div>
-            <div id="protocolGraphScrubber">
-            </div>
-          </div>
-      </div>
-    </div>
   <div id="contextmenu" class="contextmenu"> </div>
+
   <div id="concordance-view">
-  <div id="concordance-close"
-       onclick="document.getElementById('concordance-view')
-                        .style
-                        .visibility= 'hidden'">
+    <div id="concordance-close"
+         onclick="document.getElementById('concordance-view')
+                          .style
+                          .visibility= 'hidden'">
+    </div>
+     <div id="concordance-view-content"> </div>
   </div>
-   <div id="concordance-view-content">
-       </div>
-  </div>
+
   <div id="imgPath">
-    <div id="imgPath-close"
-      onclick="document.getElementById('imgPath').style.visibility= 'hidden'">
+    <div id="imgPath-close" 
+         onclick="document.getElementById('imgPath').style.visibility= 'hidden'">
+    </div>
+     <div id="imgPath-content"> </div>
   </div>
-   <div id="imgPath-content">
-  </div>
-  </div>
+
   <script type="text/javascript" src="javascripts/mainFunctions.js"></script>
   <script type="text/javascript" src="javascripts/timelineViz/activityViz.js"></script>
   <script type="text/javascript" src="javascripts/timelineViz/speechViz.js"></script>
   <script type="text/javascript" src="javascripts/timelineViz/sketchViz.js"></script>
   <script type="text/javascript" src="javascripts/main.js"></script>
+
 </body>
 </html>

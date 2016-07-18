@@ -1,5 +1,5 @@
 html, body{
-  font: 10px sans-serif;
+  font: 12px sans-serif;
   height: 100%;
   width: 100%;
   overflow: hidden;
@@ -7,38 +7,89 @@ html, body{
 }
 p {
   font-family: helvetica;
-  color: gray;
+  color: #777;
   margin: 1px;
 }
-#right{
-  float:right; /* this is IMPORTANT for the annotator to work */
-  right: 0px;
-  width:44.5%;
-  margin-left: 0.25%;
-  margin-right: 0.25%;
+#left{
+  display: inline-block;
+  vertical-align: top;
+  left: 0px;
+  width:30%;
   height:100%;
-  background:White;
+  border-right: 1px solid #c9c9c9;
 }
-#topright{
-  float:right;
-  width:50%;
-  height:40%;
+
+#center{
+  display: inline-block;
+  vertical-align: top;
+  margin-left: 5px;
+  margin-right: 5px;
+  left: 0px;
+  width:40%;
+  height: 100%;
   background:White;
-}
-#topfarright{
-  float: right;
-  width: 50%;
-  height:40%;
-}
-#bottomright{
-  float: right;
-  width:100%;
-  height: 60%;
-  background:White;
-  font: 12px sans-serif;
-  font-family:helvetica;
+  font-size: 12px;
+  font-family: helvetica, sans-serif;
   overflow: hidden;
 }
+
+#right{
+  display: inline-block; /* this is IMPORTANT for the annotator to work */
+  vertical-align: top;
+  padding-left: 5px;
+  padding-right: 5px;
+  right: 0px;
+  width:28.0%;
+  height:100%;
+  background:White;
+  border-left: 1px solid #c9c9c9;
+}
+
+#codeTitle {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+#codeDiv{
+  width:100%;
+  display: inline-block;
+  vertical-align: top;
+  width:100%;
+  height:40%;
+  background:White;
+  border-bottom: 1px solid;
+  border-color: #C9C9C9;
+}
+
+#altDisplays{
+  display: inline;
+  width: 100%;
+  height:45%;
+  border-color: #C9C9C9;
+}
+
+#tagListTitle{
+  margin-top: 10px;
+  margin-bottom: 10px;
+  width:100%;
+  background:#FFFFFF;
+  vertical-align: top;
+  overflow: hidden;
+  padding-left: 5px;
+}
+
+#tagList{
+  color: #777;
+  height: 45%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-top:1px solid;
+  border-color: #C9C9C9;
+  padding: 2px;
+  box-shadow: inset  0  8px 8px -8px #696868,
+              inset  0 -8px 8px -8px #696868;
+}
+
 /* node rect, node text, and path link are for the indented,
    hierarchical tree that shows protocols defined. */
 .node rect {
@@ -58,25 +109,17 @@ path.link {
   stroke-width: 1.5px;
 }
 #transTitle{
-  height: 8%;
   width: 100%;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 #transTitleText{
-  padding-bottom: 5px;
-  border-top: solid 1px #c0c0c0;
   vertical-align:middle;
   height:100%;
-  font-family: "Segoe UI";
-  font-size:17px;
-}
-.headings{
-  font-family: "Segoe UI";
-  font-size:17px;
-  margin: 0px;
-  color: #000000;
+  font-family: helvetica, sans-serif;
 }
 #transcriptDiv{
-  height:92%;
+  height:95%;
   width:100%;
   background:#FFFFFF;
   overflow: hidden;
@@ -110,32 +153,13 @@ path.link {
    -ms-user-select: none;
    user-select: none;
 }
-.rotate {
-  /* Safari */
-  -webkit-transform: rotate(-90deg);
-  -webkit-transform-origin: right bottom;
-  /* Firefox */
-  -moz-transform: rotate(-90deg);
-  /* IE */
-  -ms-transform: rotate(-90deg);
-  /* Opera */
-  -o-transform: rotate(-90deg);
-  /* Internet Explorer */
-  filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+.header{
+  background-color: "rgba(255, 255, 255, 0)";
+}
+.header:hover{
+  font-weight: bold;
 }
 
-#protocolTitle{
-  height: 8%;
-  width: 100%;
-}
-#protocolTitleText{
-  margin-right: 50%;
-  vertical-align:middle;
-  height:100%;
-  color:DarkGray;
-  font-family: "Segoe UI";
-  font-size:20px;
-}
 #protocolContent{
   height:92%;
   width:100%;
@@ -156,86 +180,77 @@ path.link {
 h3{
       margin: 0px;
   }
-#tagListTitle{
-  height:15%;
+.blockHead{
+  font-family: helvetica, sans-serif;
+  font-size:20px;
+  margin: 0px;
+  color: #777;
+}
+
+.blockSubHead{
   width:100%;
-  background:#FFFFFF;
-  font-size: 11px;
+  font-size: 12px;
   vertical-align: top;
   overflow: hidden;
-  border-left: solid 1px #c0c0c0;
-  padding-left: 5px;
-}
-#tagList{
-  height: 85%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  border:1px solid;
-  border-color: #C9C9C9;
-  padding: 2px;
-  box-shadow: inset  0  8px 8px -8px #696868,
-              inset  0 -8px 8px -8px #696868;
+  color: #777;
 }
 
-#left{
-  position: absolute;
-  left: 0px;
-  width:54.5%;
-  padding-left: 0.25%;
-  padding-right: 0.25%;
-  height:100%;
-  border-right: 1px solid #d0d0d0;
-}
-#topleft{
-  float:left;
-  height: 0%;
-  width: 100%;
-  background:White;
-  position: relative;
-  z-index: 50;
-  -webkit-box-shadow: 0px 8px 16px -6px rgba(0, 0, 0, 0.6);
-  -moz-box-shadow: 0px 8px 16px -6px rgba(0, 0, 0, 0.6);
-  box-shadow:  0 8px 16px -6px rgba(0, 0, 0, 0.6);
-}
-
+/*
 #timeline{
   height: 15%;
   width: 100%;
   padding: 0px;
 }
+*/
+
 .transRectHighLight{
   fill: "rgba(220, 138, 12, 0.3)";
 }
 
-#bottomleft{
-  position: absolute;
-  left: 0px;
+#docAbstractions{
   height: 100%;
   width: 100%;
   padding-top: 10px;
   padding-bottom: 10px;
   font: 10px sans-serif;
-  font-family:helvetica;
+  font-family: helvetica;
   overflow: scroll;
 }
-#bottomleft::-webkit-scrollbar {
+#docAbstractions::-webkit-scrollbar {
   display: none;
 }
 
+.vizText {
+  display: inline-block;
+  vertical-align: text-top;
+  text-align: right;
+  margin-top: 25px;
+  padding: 0px;
+  /* Safari */
+  -webkit-transform: rotate(-90deg);
+  /* Firefox */
+  -moz-transform: rotate(-90deg);
+  /* IE */
+  -ms-transform: rotate(-90deg);
+  /* Opera */
+  -o-transform: rotate(-90deg);
+  /* Internet Explorer */
+  filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+}
+
 #protocolGraphTitle{
-  height:100%;
-  width:1%;
+  display: inline-block;
+  vertical-align: top;
   background:#FFFFFF;
   font-size: 11px;
   font-family:helvetica;
   overflow: hidden;
 }
 #protocolGraph{
-  height: 100%;
-  width: 20%;
+  display: inline-block;
+  vertical-align: top;
   overflow: hidden;
   background: #FFFFFF;
-  overflow: hidden;
 }
 #protocolGraph.minimize {
   width: 0px;
@@ -268,26 +283,36 @@ h3{
   overflow: hidden;
 }
 
+#docAbstractions{
+  padding: 0px;
+}
+
 .timeSequenceVizTitle{
   display: inline-block;
-  left: 0px;
-  height:100%;
-  width:3%;
+  vertical-align: top;
+  text-align: right;
+  height:99%;
+  width:4%;
   background:#FFFFFF;
   font-size: 11px;
+  color: #777;
   font-family: sans-serif;
   overflow: hidden;
 }
+
 .timeSequenceViz{
+  margin-top: 4px;
   display: inline-block;
-  height: 100%;
+  vertical-align: top;
+  height: 99%;
   width: 20%;
   overflow: hidden;
+  border: 1px solid #c9c9c9;
 }
 
 .minimize {
   width: 0px;
-  height:100%;
+  height:99%;
   overflow: hidden;
 }
 
@@ -323,12 +348,6 @@ h3{
   border:1px solid;
   border-color: #C9C9C9;
   padding: 2px;
-}
-.header{
-  background-color: "rgba(255, 255, 255, 0)";
-}
-.header:hover{
-  font-weight: bold;
 }
 .highlighted {
   background: #F8BB64;
@@ -448,10 +467,10 @@ ul.tabs li {
   float: left;
   margin: 0 .25em 0 0;
   padding: .25em .25em;
+  font-size: 11px;
 }
 ul.tabs li a {
   color: gray;
-  font-weight: bold;
   text-decoration: none;
 }
 ul.tabs li.active {

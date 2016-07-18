@@ -93,9 +93,9 @@ function makeWordList(lowerCaseLines, wordsToRemove, sortMethod) {
   var maxfreq = tagList[0][1];
   var tagspans = "";
   var tagFreq = [];
-  var fontScale = d3.scale.linear()
+  var fontScale = d3.scale.log()
                     .domain([maxfreq, 1])
-                    .range([25, 10]);
+                    .range([30, 10]);
 
   // Generate html of the word list, each word scaled according to its
   // frequency. Return this value.
@@ -116,8 +116,9 @@ function returnSpans(selText){
   var spanArray = [];
   var spanLineArray = [];
   var rangeObject = $(selText.getRangeAt(0)); 
-  var startSpan = rangeObject.attr("startContainer");
-  var endSpan = rangeObject.attr("endContainer");
+  var startSpan = rangeObject.attr("startContainer").parentNode;
+  console.log(startSpan);
+  var endSpan = rangeObject.attr("endContainer").parentNode;
   var startLine = startSpan.parentNode.parentNode; // table row
   var endLine = endSpan.parentNode.parentNode;
   // collect all parent items in an array
@@ -169,15 +170,12 @@ function toggleMinMax(divTitleName, divName, divTitleText, divOrigW){
       if ($("#"+divName).hasClass('minimize')) {
           $("#"+divName).animate({ width: divOrigW }, 200,
               function(){
-                $("#"+divTitleName)
-                  .text(divTitleText+
-                        " [click to contract view]");
+                //$("#"+divTitleName).text(divTitleText);
               }).removeClass('minimize');
       } else {
           $("#"+divName).animate({ width: 1 }, 200, "swing",
               function(){
-                $("#"+divTitleName)
-                  .text(divTitleText + " [click to expand view]");
+                //$("#"+divTitleName).text(divTitleText);
               }).addClass('minimize');
       }
   });
