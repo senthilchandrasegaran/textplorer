@@ -55,12 +55,14 @@ var inputvideo = { id: 'inputvideo' };
 var inputtrans = { id: 'inputtrans' };
 var sketchlog = { id: 'sketchlog' };
 var speechlog = { id: 'speechlog' };
+var infoContent = { id: 'infoContent' };
 var activitylog = { id: 'activitylog' };
 var outputvideo = { id: 'outputvideo', src: '' };
 var outputtrans = { id: 'outputtrans', target: '' };
 var outputlog = { id: 'outputlog', target: '' };
 var outputSpeechLog = { id: 'outputSpeechLog', target: '' };
 var outputActivityLog = { id: 'outputActivityLog', target: '' };
+var outputInfoContent = { id: 'outputInfoContent', target: '' };
 var userlog = { id: 'userlog' };
 var clicklog = { id: 'clicklog' };
 
@@ -183,6 +185,8 @@ app.get('/', function (req, res) {
     outputlog: outputlog,
     outputSpeechLog: outputSpeechLog,
     outputActivityLog: outputActivityLog,
+    infoContent: infoContent,
+    outputInfoContent: outputInfoContent,
     /*
      * TO ADD NEW DATASET:
      * Copy the block of code below,
@@ -310,6 +314,7 @@ app.get('/main', function (req, res) {
         outputlog: outputlog,
         outputSpeechLog: outputSpeechLog,
         outputActivityLog: outputActivityLog,
+        outputInfoContent: outputInfoContent,
      /*
       * TO ADD NEW DATASET:
       * Copy-Paste the block of code below,
@@ -354,8 +359,8 @@ var options = {
   mode: 'text',
   pythonOptions: ['-u'],
   scriptPath: './public/pythonscripts/',
+  // args:  outputtrans.target,
 };
-
 
 // This function works, but needs better data handling, and as such is
 // not called right now. The idea is to scale or sort the word cloud
@@ -363,13 +368,27 @@ var options = {
 app.post('/infoContent', function (req, res){
   // invoke this just once, and send all the data over to the client.
   // This will make the code more responsive.
+  // var infoContentParams = req.body;
   var pyShell = new PythonShell('infoContent.py', options)
-  pyShell.send(req.body.data);
+  // pyShell.send(req.body.data);
+  // send the transcript text to the python shell
+  pyShell.send(outputtrans.target);
   pyShell.on('message', function(message){
-    res.send(200, {data: message});
+    infoContentDict = message
+    console.log(infoContentDict)
+    res.send(200, {data: infoContentDict});
+    // outputInfoContent.target = infoContentParams.infoContent;
   });
   pyShell.end(function(err){
     if (err) throw err;
   });
 });
+
+/*
+app.get('/receive_infoContent', function (req, res) {
+    res.writeHead(200);
+    res.write(outputInfoContent.target);
+    res.end();
+});
+*/
 

@@ -31,6 +31,7 @@ var protocolObject = {};
 var oldProtocolObject = {};
 var selectedText = '';
 var spanCollection = [];
+var orgSpanCollection = [];
 var transGraphData = []; // data structure for transGraph display
 var prevClickedTag = "";
 var isTagClicked = false;
@@ -74,6 +75,11 @@ var protocolGraphHeight = 0;
  */
 // var newDataSeriesHeight = 0;
 
+// Options to control visualizations
+var highlightIC = true;   // control whether or not to highlight
+                          // transcript based on information content.
+var speakerDiff = 0;
+
 
 // colors for each speaker in the data. Add to this list if speakers > 4
 var speakerColors = [
@@ -82,6 +88,8 @@ var speakerColors = [
         "#b2df8a",
         "#bc80bd"
     ];
+
+
 
 // Color list to use for code definitions
 // Note: the color list below is instantiated in reverse order in the
@@ -319,10 +327,11 @@ window.onload = function () {
             spanArray.push([i, k, words[k].toLowerCase()]);
           }
           var labelColor = "";
-          if (captionArray[i][2] !== "F1" &&
-              captionArray[i][2] !== "F2" &&
-              captionArray[i][2] !== "F3" &&
-              captionArray[i][2] !== "F4"){
+          if ((captionArray[i][2] !== "F1" &&
+               captionArray[i][2] !== "F2" &&
+               captionArray[i][2] !== "F3" &&
+               captionArray[i][2] !== "F4") ||
+              (speakerDiff === 0)){
             labelColor = "#c0c0c0";
           } else {
             labelColor = speakerColors[parseInt(captionArray[i][2]
@@ -381,7 +390,16 @@ window.onload = function () {
         var transGraphPadding = 0;
         var scaleHeights = 0;
         var constantHeight = 0;
-        var speakerDiff = 1;
+        var maxTranLine = 0
+
+        // to normalize the widths of the lines of text, need to find
+        // the maximum length
+        for (i=0; i<lowerCaseLines.length;i++){
+          if (maxTranLine < lowerCaseLines[i].length){
+            maxTranLine = lowerCaseLines[i].length;
+          }
+        }
+
         for (i=0; i < captionArray.length; i++){
           var d = {};
           var ySec = hmsToSec(captionArray[i][0]);
@@ -392,7 +410,8 @@ window.onload = function () {
           if (speakerDiff === 0){
             d.x = 0;
             d.fillColor = transGraphColor;
-            d.width = w;
+            d.width = lowerCaseLines[i].length/maxTranLine * w;
+            // d.width = w;
           } else {
             var speakerIndex = speakerList_hardcode
                                   .indexOf(captionArray[i][2]);
@@ -1783,6 +1802,40 @@ window.onload = function () {
       }
     }); // end of stuff to do with activityLog
 
+    var fileTemp3 = $.ajax({
+        type: "POST",
+        url: "/infoContent",
+        dataType: "text"
+    }).done(function (data) {
+        infoContentString = JSON.parse(data);
+        infoContentObj = JSON.parse(infoContentString.data);
+        console.log(infoContentObj);
+        var highestInfoContent = 0;
+        for (word in infoContentObj) {
+          if (infoContentObj[word] > highestInfoContent) {
+            highestInfoContent = infoContentObj[word];
+          }
+        }
+        allSpans = $("#transContent").find("span");
+        allSpans.each(function() {
+          textColor = "#000";
+          spanText = $(this).text().trim().toLowerCase();
+          if (spanText in infoContentObj) {
+            spanAlpha = infoContentObj[spanText]/
+                        highestInfoContent;
+            spanHighLightColor = "rgba(8,69,148," + spanAlpha +")";
+            if (spanAlpha > 0.35) { textColor = "#fff"; }
+            borderRadius = "3px";
+          } else {
+            spanHighLightColor = "rgba(255, 255, 255, 0)";
+            borderRadius = "0px";
+          }
+          $(this).css({'background-color': spanHighLightColor,
+                       'border-radius': borderRadius,
+                       'color': textColor,
+                       'padding-left': '3px'});
+        });
+    });
 
 
     /* TO ADD NEW DATASET
