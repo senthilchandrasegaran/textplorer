@@ -119,7 +119,19 @@ path.link {
   font-family: helvetica, sans-serif;
 }
 #transcriptDiv{
-  height:95%;
+  height:85%!important;
+  width:100%;
+  background:#FFFFFF;
+  overflow: hidden;
+  margin-bottom: 10px;
+  border-bottom: 1px solid;
+  border-top: 1px solid;
+  border-color: #C9C9C9;
+  box-shadow: inset 0px 8px 8px -8px #686868,
+              inset 0px 8px 8px -8px #686868;
+}
+#transcriptOptions{
+  margin-bottom: 10px;
   width:100%;
   background:#FFFFFF;
   overflow: hidden;
@@ -132,13 +144,10 @@ path.link {
 }
 #transContent{
   float: left;
-  height:100%;
+  height: 100%;
   width:100%;
   background:#FFFFFF;
   overflow: auto;
-  box-shadow: inset  0  8px 8px -8px #696868,
-              inset  0 -8px 8px -8px #696868;
-  margin-bottom: 50px;
 }
 #transTable{
   list-style: none;
@@ -193,6 +202,15 @@ h3{
   vertical-align: top;
   overflow: hidden;
   color: #777;
+}
+
+label {
+ margin-right: 10px;
+}
+
+label:hover {
+ background:#eee;
+ cursor:pointer;
 }
 
 /*

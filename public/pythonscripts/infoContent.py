@@ -44,14 +44,18 @@ ic_bnc_plus1 = wordnet_ic.ic('ic-bnc-add1.dat')
 #   return icArray
 
 def getInfoContent(textData):
-    textArray = json.dumps(textData).split('\\n')
+    ic_freq_obj = {}
+    textArray = json.dumps(textData).split("\\n")
     parsedTextArray = [x.split(',') for x in textArray]
     sentenceList = [x[3] for x in parsedTextArray[1:] if len(x)==4]
     tokens = []
     for sentence in sentenceList:
-        tokens += nltk.word_tokenize(sentence)
+        specialString = "!@#$%^&*()[]{};:,./<>?\|`~-=_+'"
+        sentence_filt = sentence.translate \
+                        ({ord(c): " " for c in specialString})
+        tokens += nltk.word_tokenize(sentence_filt)
     filtered_tokens = [w.lower() for w in tokens
-        if not w.lower() in stopwords.words('english')]
+        if not w.lower() in set(stopwords.words("english"))]
     frequencyDict = Counter(filtered_tokens)
     uniquetokens = list(set(filtered_tokens))
     icArray = []
@@ -61,7 +65,7 @@ def getInfoContent(textData):
         if len(synsets) > 0:
             for synset in synsets:
                 if not \
-                set([synset.pos()]).intersection(set(['a','s','r'])) :
+                set([synset.pos()]).intersection(set(["a","s","r"])) :
                     synsetItem = synset
                     tempNum = 1
                     break
@@ -69,12 +73,16 @@ def getInfoContent(textData):
                 infoContent = information_content(synsetItem,
                                                   ic_bnc_plus1)
                 icArray.append((token, infoContent))
-    icDict = str(dict(icArray)).replace("'", '"')
-    print(icDict)
-    #icTuple = sorted(icDict.items(), key=operator.itemgetter(1),
-    #                 reverse=True)
-    #icTupleOrdered = OrderedDict(icTuple)
-    # return json.dumps(icDict)
+            else :
+                icArray.append((token, 0.0))
+    for word, ic in icArray:
+        metric = {}
+        metric["infoContent"] = ic
+        metric["frequency"] = frequencyDict[word]
+        ic_freq_obj[word] = metric
+    ic_freq_str = str(ic_freq_obj)
+    icDict = ic_freq_str.replace("'", '"')
+    return icDict
 
 words =  sys.stdin.read()
 print(getInfoContent(words))

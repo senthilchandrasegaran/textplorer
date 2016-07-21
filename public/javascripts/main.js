@@ -358,15 +358,6 @@ window.onload = function () {
       }
       numLines = displayLines.length;
 
-      // This jQuery code below makes the transcript text
-      // annotable using the annotator library.  The setupPlugins
-      // sets up annotator in the 'default' mode.
-      jQuery(function ($) {
-        $('#transContent').height($('#center').height()-70);
-        // the above line was added because the annotator-wrapper div
-        // seems to be overwriting the transContent height settings.
-      });
-
       // player.ready(function () {
         // representation of lines in transcript overall window
         d3.select("#transGraphContent").selectAll("svg").remove();
@@ -1812,28 +1803,34 @@ window.onload = function () {
         console.log(infoContentObj);
         var highestInfoContent = 0;
         for (word in infoContentObj) {
-          if (infoContentObj[word] > highestInfoContent) {
-            highestInfoContent = infoContentObj[word];
+          wordic = infoContentObj[word]["infoContent"];
+          if (wordic > highestInfoContent) {
+            highestInfoContent = wordic;
           }
         }
         allSpans = $("#transContent").find("span");
+        var textWeight, textColor, textStyle, spanText;
+        var allWeights = [100, 300, 500, 700, 900]
+        var wtScale = d3.scale.quantize()
+                        .domain([0,1])
+                        .range([300, 500, 700, 900]);
         allSpans.each(function() {
-          textColor = "#000";
-          spanText = $(this).text().trim().toLowerCase();
+          textWeight = 300
+          textStyle = "regular";
+          textColor = "#777";
+          spanTextLow = $(this).text().trim().toLowerCase();
+          spanText = spanTextLow.replace(/[^a-zA-Z0-9\-]/g, "");
           if (spanText in infoContentObj) {
-            spanAlpha = infoContentObj[spanText]/
-                        highestInfoContent;
-            spanHighLightColor = "rgba(8,69,148," + spanAlpha +")";
-            if (spanAlpha > 0.35) { textColor = "#fff"; }
-            borderRadius = "3px";
-          } else {
-            spanHighLightColor = "rgba(255, 255, 255, 0)";
-            borderRadius = "0px";
-          }
-          $(this).css({'background-color': spanHighLightColor,
-                       'border-radius': borderRadius,
-                       'color': textColor,
-                       'padding-left': '3px'});
+            var normIC = infoContentObj[spanText]["infoContent"]/
+                         highestInfoContent;
+            var textWeight = wtScale(normIC);
+            textStyle = "regular";
+            textColor = "#084594";
+          } 
+          $(this).css({'color': textColor,
+                       'font-style': textStyle,
+                       'font-family': 'Roboto, sans-serif',
+                       'font-weight': textWeight});
         });
     });
 
