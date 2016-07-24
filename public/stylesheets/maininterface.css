@@ -1,5 +1,5 @@
 html, body{
-  font: 12px sans-serif;
+  font: 13px sans-serif;
   height: 100%;
   width: 100%;
   overflow: hidden;
@@ -28,7 +28,7 @@ p {
   width:40%;
   height: 100%;
   background:White;
-  font-size: 12px;
+  font-size: 13px;
   font-family: helvetica, sans-serif;
   overflow: hidden;
 }
@@ -62,10 +62,10 @@ p {
 }
 
 #altDisplays{
-  display: inline;
   width: 100%;
-  height:45%;
+  height: 50%;
   border-color: #C9C9C9;
+  margin-bottom: 10px;
 }
 
 #tagListTitle{
@@ -80,14 +80,27 @@ p {
 
 #tagList{
   color: #777;
-  height: 45%;
+  height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
   border-top:1px solid;
+  border-bottom:1px solid;
   border-color: #C9C9C9;
   padding: 2px;
+  /*
   box-shadow: inset  0  8px 8px -8px #696868,
               inset  0 -8px 8px -8px #696868;
+              */
+}
+
+.options{
+    border-color: #c9c9c9;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    height: 5%;
+    width:100%;
+    background:#FFFFFF;
+    overflow: hidden;
 }
 
 /* node rect, node text, and path link are for the indented,
@@ -123,19 +136,15 @@ path.link {
   width:100%;
   background:#FFFFFF;
   overflow: hidden;
-  margin-bottom: 10px;
   border-bottom: 1px solid;
   border-top: 1px solid;
   border-color: #C9C9C9;
+  /*
   box-shadow: inset 0px 8px 8px -8px #686868,
               inset 0px 8px 8px -8px #686868;
+              */
 }
-#transcriptOptions{
-  margin-bottom: 10px;
-  width:100%;
-  background:#FFFFFF;
-  overflow: hidden;
-}
+
 #annotDiv{
   height: 100%;
   width: 100%;

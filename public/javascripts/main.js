@@ -35,10 +35,10 @@ var orgSpanCollection = [];
 var transGraphData = []; // data structure for transGraph display
 var prevClickedTag = "";
 var isTagClicked = false;
-var videoLenSec;
 var clickLog = [];
 var sendClickData = {};
 var cTime =  new Date();
+var docLength = 0;
 
 // this set of variables for path viewer
 var timeStamps = [];
@@ -57,7 +57,8 @@ var greenHighlight = "rgba(232, 138, 12, 1)";
 var transGraphColor = "rgba(123, 123, 123, 0.2)";
 var boldHighlightColor = "rgba(255, 127, 0, 0.8)";
 var mildHighlightColor = "rgba(255, 127, 0, 0.8)";
-var wordCloudColor = "rgba(10, 100, 70, 0.7)";
+// var wordCloudColor = "rgba(10, 100, 70, 0.7)";
+var wordCloudColor = "#084594";
 var shadowGrey = "rgba(123,123,123,0.7)";
 
 // div values
@@ -75,10 +76,15 @@ var protocolGraphHeight = 0;
  */
 // var newDataSeriesHeight = 0;
 
+// object to store information content, word frequency, named entities
+// etc.
+var textMetadata = {};
 // Options to control visualizations
 var highlightIC = true;   // control whether or not to highlight
                           // transcript based on information content.
+var speakerList = ["F1", "F2", "F3", "F4"]
 var speakerDiff = 0;
+
 
 
 // colors for each speaker in the data. Add to this list if speakers > 4
@@ -202,6 +208,7 @@ function hmsToSec(hms){
 // Code credits for below function (getIndicesOf):
 //http://stackoverflow.com/questions/3410464/how-to-find-all-occurrences-of-one-string-in-another-in-javascript
 function getIndicesOf(searchStr, str, caseSensitive) {
+    searchStr = searchStr.trim();
     var startIndex = 0, searchStrLen = searchStr.length;
     var index, indices = [];
     if (!caseSensitive) {
@@ -221,7 +228,7 @@ function getIndicesOf(searchStr, str, caseSensitive) {
 function concordance(word) {
     //take the captionArray and put in one string
     var allCaptions = "";
-    var window = 60;
+    var textWindow = 60;
     captionArray.forEach(function (caption) {
         allCaptions += caption[3] + " ";
     });
@@ -230,31 +237,32 @@ function concordance(word) {
     var indices = getIndicesOf(word, allCaptions, false);
 
     //Array of the concordances
-    var concordances = ["<table id='concTable'>"];
+    var concordances = "<table id='concTable' align='center'>";
 
     for (var i = 0; i < indices.length; i++) {
         var index = indices[i];
-        var left = index - window < 0 ? 0 : index - window;
-        var right = index + window + word.length >
-                    allCaptions.length-1 ?
-                    allCaptions.length-1 : index + window + word.length;
-        concordances.push("<tr>" +
-                          "<td align='right'>" +
-                          allCaptions.substring(left, index - 1) +
-                          "</td>" +
-                          "<td width=10px></td>" +
-                          "<td align='center'><b>" +
-                          allCaptions.substring(index,
-                                                index+word.length-1) +
-                          " </b></td>" +
-                          "<td width=10px></td>" +
-                          "<td align='left'>" +
-                          allCaptions.substring(index + word.length,
-                                                right) +
-                          "</td>" +
-                          "</tr>");
+        var left = index - textWindow < 0 ? 0 : index - textWindow;
+        var right = index+textWindow+word.length >allCaptions.length-1?
+                    allCaptions.length-1 : index + textWindow + word.length;
+        var row = "<tr>" +
+                    "<td align='right'>" +
+                    allCaptions.substring(left, index - 1) +
+                    "</td>" +
+                    "<td width=10px></td>" +
+                    "<td align='center'><b>" +
+                    allCaptions.substring(index,
+                                          index+word.length-1) +
+                    " </b></td>" +
+                    "<td width=10px></td>" +
+                    "<td align='left'>" +
+                    allCaptions.substring(index + word.length-1,
+                                          right) +
+                    "</td>" +
+                  "</tr>"
+          concordances = concordances.concat(row);
     }
-    concordances.push("</table>")
+    concordances = concordances.concat("</table>");
+    console.log(concordances);
     return concordances;
 }
 
@@ -283,6 +291,7 @@ window.onload = function () {
   bottomLeftHeight = $("#bottomleft").height();
   sketchesHeight = $("#sketches").height();
   transGraphWidth = $("#transGraph").width();
+  icGraphWidth = $("#icGraph").width();
   sketchLogHeight = $("#sketchLog").height();
   speechLogHeight = $("#speechLog").height();
   activityLogHeight = $("#activityLog").height();
@@ -353,136 +362,30 @@ window.onload = function () {
           tempspan = "";
         }
       }
+
       for (var j in displayLines) {
         $("#transTable").append(displayLines[j]);
       }
       numLines = displayLines.length;
 
       // player.ready(function () {
-        // representation of lines in transcript overall window
-        d3.select("#transGraphContent").selectAll("svg").remove();
-        var w = $('#transGraphContent').width()-0;
-        //because of the border
-        var docLength = hmsToSec(captionArray[captionArray.length-1][0]);
-        videoLenSec = docLength;
-        var h = $('#transGraphContent').height()-0;
-        //because of the border
-        var transSvg = d3.select("#transGraphContent").append("svg")
-                         .attr("width", w)
-                         .attr("height", h);
-                         //.style({"border" : "1px solid #d0d0d0"});
-        var speakerList_hardcode = ["F1", "F2", "F3", "F4"]
-        var transcriptScale = d3.scale.linear()
-                            .domain([0, docLength])
-                            .range([0, h]);
-        var transScaleX = d3.scale.linear()
-                            .domain([0, speakerList_hardcode.length])
-                            .range([0, w]);
-        var transGraphPadding = 0;
-        var scaleHeights = 0;
-        var constantHeight = 0;
-        var maxTranLine = 0
-
-        // to normalize the widths of the lines of text, need to find
-        // the maximum length
-        for (i=0; i<lowerCaseLines.length;i++){
-          if (maxTranLine < lowerCaseLines[i].length){
-            maxTranLine = lowerCaseLines[i].length;
-          }
-        }
-
-        for (i=0; i < captionArray.length; i++){
-          var d = {};
-          var ySec = hmsToSec(captionArray[i][0]);
-          d.timeStamp = ySec;
-          var yloc = transcriptScale(ySec);
-          d.y = yloc;
-          d.speaker = captionArray[i][2];
-          if (speakerDiff === 0){
-            d.x = 0;
-            d.fillColor = transGraphColor;
-            d.width = lowerCaseLines[i].length/maxTranLine * w;
-            // d.width = w;
-          } else {
-            var speakerIndex = speakerList_hardcode
-                                  .indexOf(captionArray[i][2]);
-            if (speakerIndex === -1){
-              // uncomment the below to show other speakers as well
-              // (apart from the participants)
-              /*
-              d.y = transScaleY(speakerList_hardcode.length - 5);
-              d.fillColor = transGraphColor;
-              d.height = transScaleY(0.9);
-              */
-            } else {
-              d.x = transScaleX(speakerList_hardcode.length -
-                                speakerIndex - 1);
-              d.fillColor = speakerColors[speakerIndex];
-              d.width = transScaleX(0.9);
-            }
-          }
-          if (constantHeight !== 0){
-            d.height = 5;
-          } else {
-            var endSec = hmsToSec(captionArray[i][1]);
-            d.endTime = endSec;
-            var startSec = hmsToSec(captionArray[i][0]);
-            var scaledHeight = transcriptScale(endSec - startSec);
-            if (scaledHeight < 2){
-              d.height = 2;
-            } else {
-              d.width = scaledHeight;
-            };
-          }
-          d.dialog = captionArray[i][3];
-          transGraphData.push(d);
-        }
-
-        var tip = d3.tip()
-                    .attr('class', 'd3-tip')
-                    .offset([0, 10])
-                    .direction('e');
-        transSvg.call(tip);
-        var rects = transSvg.selectAll("rect")
-                 .data(transGraphData)
-                 .enter()
-                 .append("rect")
-                 .attr("x", function (d) { return d.x; })
-                 .attr("y", function (d) { return d.y; })
-                 .attr("width", function (d) {
-                   return d.width;
-                 })
-                 .attr("z", 1)
-                 .attr("height", function (d) { return d.height; })
-                 .attr("fill", function (d) {
-                     return d.fillColor;
-                 })
-                 .attr("fill-opacity", 0.8)
-                 .on("mouseover", function(d){
-                   tip.html("<font size=2 color='" + d.fillColor +
-                            "'>" + d.speaker + ":  </font>" +
-                            d.dialog).show();
-                   d3.select(this).attr("height", 5);
-                   if (prevClickedTag === ""){
-                     d3.select(this).attr('fill', greenHighlight);
-                   }
-                   d3.select(this).attr('fill-opacity', 1);
-                 })
-                 .on("mouseout", function(d){
-                   tip.hide();
-                   d3.select(this).attr("height", d.height);
-                   if (prevClickedTag === ""){
-                     d3.select(this).attr('fill', d.fillColor);
-                   }
-                   d3.select(this).attr('fill-opacity', 0.8);
-                 });
-        // end representation of lines
+      // representation of lines in transcript overall window
+      generateTransGraph("#transGraphContent", // transcript graph
+                          captionArray, // array from text uploaded
+                          speakerList,  // list of speakers
+                          speakerDiff,  // 1=yes, 0=no
+                          lowerCaseLines, // all lines in lowercase
+                          textMetadata, // object with all ICs
+                          false);  // whether or not to show IC
+      // end representation of lines
       // }); // end player.ready()
 
       $("#tagList").empty()
       $("#tagList").css("background-color", "#ffffff");
       // $("#tagList").append(tagspans);
-      $("#tagList").append(makeWordList(lowerCaseLines));
+      $("#tagList").append(makeWordList(lowerCaseLines,
+                                        textMetadata,
+                                        tagsToRemove));
 
       // Remove tag on right click
       var tagListDOM = $('#tagList');
@@ -498,6 +401,7 @@ window.onload = function () {
             $("#tagList").empty();
             $("#tagList").css("background-color", "#ffffff");
             $("#tagList").append(makeWordList(lowerCaseLines,
+                                              textMetadata,
                                               tagsToRemove));
             // Finally remove all highlights from transcript
             $("#transTable").find("td").removeClass('hoverHighlight');
@@ -522,7 +426,7 @@ window.onload = function () {
               }).parents("td");
         transItems.addClass('hoverHighlight');
 
-        //----------------------------------------------
+        //---------------------------------------------------------
         // Highlight corresponding items in transGraph
         //----------------------------------------------
         var transItemIds = [];
@@ -593,10 +497,13 @@ window.onload = function () {
               var allConcordances = concordance(word);
               $('#concordance-view-content').children().remove();
               //now add it to the interface
+              /*
               allConcordances.forEach(function (eachConcordance) {
                   $('#concordance-view-content')
                     .append(eachConcordance + "<br/>");
               });
+              */
+              $('#concordance-view-content').append(allConcordances);
           } else {
             tagHoverText = $.trim($(this).text());
             // check if the tag was already clicked
@@ -816,6 +723,7 @@ window.onload = function () {
               // speaker color, so that the user gets the context.
               $("#tagList").empty();
               $("#tagList").append(makeWordList(lineCollection,
+                                                textMetadata,
                                                 tagsToRemove));
               $("#tagList").css("background-color",
                     speakerColors[parseInt(speakerID.split("F")[1])-1]);
@@ -857,6 +765,7 @@ window.onload = function () {
 
       // toggle the size of the transGraph div
       toggleMinMax("transGraphTitle", "transGraph", "Graphical View of Transcript", transGraphWidth);
+      toggleMinMax("icGraphTitle", "icGraph", "Graphical View of Information Content", icGraphWidth);
 
       // toggle the size of the sketchLog div
       // toggleMinMax("sketchLogTitle", "sketchLog", "Sketch Participation Chart", sketchLogHeight);
@@ -878,108 +787,6 @@ window.onload = function () {
       // toggleMinMax("newDataSeriesTitle", "newDataSeries",
       //              "newDataseries Chart", newDataSeriesHeight);
 
-      // show Video Progress on the sketch and Protocol Divs
-      // var vidPlayer = videojs("discussion-video");
-      /*
-      vidPlayer.ready(function () {
-          // this is for the transcript graph div
-          var $transGraphScrubberProgress = $("#transGraphScrubber");
-          var trOffsetMargin = $("#transGraph").height() +
-                           parseFloat(
-                             $("#transGraph").css("border-top-width")
-                                            .split("px")[0])+
-                           parseFloat(
-                             $("#transGraph").css("border-bottom-width")
-                                          .split("px")[0]);
-          $transGraphScrubberProgress.css({"margin-top":
-                                          0-trOffsetMargin});
-          // this is for the new sketch div
-          var $sketchLogScrubberProgress = $("#sketchLogScrubber");
-          var skOffsetMargin = $("#sketchLog").height() +
-                           parseFloat(
-                             $("#sketchLog").css("border-top-width")
-                                            .split("px")[0])+
-                           parseFloat(
-                             $("#sketchLog").css("border-bottom-width")
-                                          .split("px")[0]);
-          $sketchLogScrubberProgress.css({"margin-top":
-                                          0-skOffsetMargin});
-          // scrubber for speech div
-          var $speechLogScrubberProgress = $("#speechLogScrubber");
-          var spOffsetMargin = $("#speechLog").height() +
-                           parseFloat(
-                             $("#speechLog").css("border-top-width")
-                                            .split("px")[0])+
-                           parseFloat(
-                             $("#speechLog").css("border-bottom-width")
-                                          .split("px")[0]);
-          $speechLogScrubberProgress.css({"margin-top":
-                                          0-spOffsetMargin});
-          // scrubber for activity div
-          var $activityLogScrubberProgress = $("#activityLogScrubber");
-          actOffsetMargin = $("#activityLog").height() +
-                           parseFloat(
-                             $("#activityLog").css("border-top-width")
-                                              .split("px")[0])+
-                           parseFloat(
-                             $("#activityLog").css("border-bottom-width")
-                                              .split("px")[0]);
-          $activityLogScrubberProgress.css({"margin-top":
-                                            0-actOffsetMargin});
-
-          var $protocolScrubberProgress = $("#protocolGraphScrubber");
-          protocolOffsetMargin = $("#protocolGraph").height() +
-                           parseFloat( $("#protocolGraph")
-                                          .css("border-top-width")
-                                          .split("px")[0])+
-                           parseFloat( $("#protocolGraph")
-                                          .css("border-bottom-width")
-                                          .split("px")[0]);
-          $protocolScrubberProgress.css({"margin-top":
-                                            0-protocolOffsetMargin});
-
-          /* TO ADD NEW DATASET
-           * Make a copy of the below block of code,
-           * Uncomment it, and change all variable that contain the text
-           * `newDataSeries' to a more meaningful name consistent with
-           * the other files
-           * IMPORTANT: See the Wiki for details now how to do this
-           * properly!
-           */
-          /*
-          var $newDataSeriesScrubberProgress = $("#newDataSeriesScrubber");
-          newDataSeriesOffsetMargin =
-                $("#newDataSeries").height() +
-                parseFloat($("#newDataSeries")
-                             .css("border-top-width")
-                             .split("px")[0]) +
-                parseFloat($("#newDataSeries")
-                             .css("border-bottom-width")
-                             .split("px")[0]);
-          $newDataSeriesScrubberProgress.css({"margin-top":
-                                              0-actOffsetMargin});
-
-
-          vidPlayer.on('timeupdate', function (e) {
-              var percent = parseFloat(this.currentTime()) /
-                            parseFloat(this.duration());
-              $transGraphScrubberProgress.width((percent * 100.0)+"%");
-              $sketchLogScrubberProgress.width((percent * 100.0)+"%");
-              $speechLogScrubberProgress.width((percent * 100.0)+"%");
-              $activityLogScrubberProgress.width((percent * 100.0)+"%");
-              $protocolScrubberProgress.width((percent * 100.0)+"%");
-
-              /* TO ADD NEW DATASET
-               * Make a copy of the below block of code,
-               * Uncomment it, and change all variable that contain the
-               * text `newDataSeries' to a more meaningful name
-               * consistent with the other files
-               * IMPORTANT: See the Wiki for details now how to do this
-               * properly!
-              // $newDataSeriesScrubberProgress.width((percent * 100.0)+"%");
-          });
-      });
-    */
 
       // Allow tabbed indenting on protocol textArea field
       // Code snippet credit to
@@ -1334,12 +1141,15 @@ window.onload = function () {
             // only in the case of a selection event.
             $("#tagList").empty();
             $("#tagList").css("background-color", "#ffffff");
-            $("#tagList").append(makeWordList(linesList, tagsToRemove));
+            $("#tagList").append(makeWordList(linesList,
+                                              textMetadata,
+                                              tagsToRemove));
           }
         } else {
           $("#tagList").empty();
           $("#tagList").css("background-color", "#ffffff");
           $("#tagList").append(makeWordList(lowerCaseLines,
+                                            textMetadata,
                                             tagsToRemove));
         }
       });
@@ -1631,6 +1441,7 @@ window.onload = function () {
                     $("#tagList").empty();
                     $("#tagList").css("background-color", "#ffffff");
                     $("#tagList").append(makeWordList(lineCollection,
+                                                      textMetadata,
                                                       tagsToRemove));
                     // set general click status as 1, so that this has
                     // to be disabled before another group of spans can
@@ -1798,42 +1609,38 @@ window.onload = function () {
         url: "/infoContent",
         dataType: "text"
     }).done(function (data) {
-        infoContentString = JSON.parse(data);
-        infoContentObj = JSON.parse(infoContentString.data);
-        console.log(infoContentObj);
-        var highestInfoContent = 0;
-        for (word in infoContentObj) {
-          wordic = infoContentObj[word]["infoContent"];
-          if (wordic > highestInfoContent) {
-            highestInfoContent = wordic;
-          }
-        }
-        allSpans = $("#transContent").find("span");
-        var textWeight, textColor, textStyle, spanText;
-        var allWeights = [100, 300, 500, 700, 900]
-        var wtScale = d3.scale.quantize()
-                        .domain([0,1])
-                        .range([300, 500, 700, 900]);
-        allSpans.each(function() {
-          textWeight = 300
-          textStyle = "regular";
-          textColor = "#777";
-          spanTextLow = $(this).text().trim().toLowerCase();
-          spanText = spanTextLow.replace(/[^a-zA-Z0-9\-]/g, "");
-          if (spanText in infoContentObj) {
-            var normIC = infoContentObj[spanText]["infoContent"]/
-                         highestInfoContent;
-            var textWeight = wtScale(normIC);
-            textStyle = "regular";
-            textColor = "#084594";
-          } 
-          $(this).css({'color': textColor,
-                       'font-style': textStyle,
-                       'font-family': 'Roboto, sans-serif',
-                       'font-weight': textWeight});
-        });
+        var infoContentString = JSON.parse(data);
+        textMetadata = JSON.parse(infoContentString.data);
+        console.log(textMetadata);
+        $('#showIC').prop('checked', true);
+        textICVis($("#transContent"), textMetadata);
+        $("#tagList").empty()
+        $("#tagList").css("background-color", "#ffffff");
+        // $("#tagList").append(tagspans);
+        $("#tagList").append(makeWordList(lowerCaseLines,
+                                          textMetadata,
+                                          tagsToRemove));
+        generateTransGraph("#icGraphContent", // transcript graph
+                            captionArray, // array from text uploaded
+                            speakerList,  // list of speakers
+                            speakerDiff,  // 1=yes, 0=no
+                            lowerCaseLines, // all lines in lowercase
+                            textMetadata, // object with all ICs
+                            true);  // whether or not to show IC
     });
 
+
+    $('#showIC').change(function(){
+      if (!($(this).is(':checked'))) {
+          $("#transContent").find("span").each(function() {
+              $(this).css({'color': '#000',
+                           'font-style': 'regular',
+                           'font-weight': 400});
+          });
+      } else {
+        textICVis($("#transContent"), textMetadata);
+      }
+    });
 
     /* TO ADD NEW DATASET
      * Make a copy of the below block of code, Uncomment it, and change
