@@ -240,26 +240,16 @@ function makeWordList(lowerCaseLines,textMetadataObj,wordsToRemove) {
   return tagspans;
 }
 
-function generateTransGraph(transGraphContainer,
-                            captionArray,
-                            speakerList,
-                            speakerDiff,
-                            lowerCaseLines,
-                            textMetadataObj,
-                            showIC) {
+function generateTransGraph(transGraphContainer, captionArray,
+    speakerList, speakerDiff, lowerCaseLines, textMetadataObj, showIC) {
     
-    console.log(transGraphContainer);
     d3.select(transGraphContainer).selectAll("svg").remove();
-    var w = $(transGraphContainer).width()-0;
-    //because of the border
+    var w = $(transGraphContainer).width();
     docLength = hmsToSec(captionArray[captionArray.length-1][0]);
-    var h = $(transGraphContainer).height()-0;
-    //because of the border
+    var h = $(transGraphContainer).height();
     var transSvg = d3.select(transGraphContainer).append("svg")
                      .attr("width", w)
                      .attr("height", h);
-                     //.style({"border" : "1px solid #d0d0d0"});
-    // var speakerList_hardcode = ["F1", "F2", "F3", "F4"]
     var transcriptScale = d3.scale.linear()
                             .domain([0, docLength])
                             .range([0, h]);
@@ -279,6 +269,7 @@ function generateTransGraph(transGraphContainer,
       }
     }
 
+    // perform infocontent-based coloring if applicable
     var highestInfoContent = 0;
     var icColorArray = [];
     if ( (!($.isEmptyObject(textMetadataObj))) && 
@@ -289,7 +280,9 @@ function generateTransGraph(transGraphContainer,
           highestInfoContent = wordic;
         }
       }
-      // perform infocontent-based coloring
+      var icScale = d3.scale.linear()
+                            .domain([0, highestInfoContent])
+                            .range([0, 0.3]);
       for (var sInd=0;sInd<lowerCaseLines.length;sInd++){
         var wordsInLine = lowerCaseLines[sInd];
         var maxIC = 0;
@@ -306,14 +299,13 @@ function generateTransGraph(transGraphContainer,
             // nothing, this was for testing
           }
         }
-        var icLineColor = "rgba(8,69,148," +
-                     maxIC/highestInfoContent + ")";
-        console.log(icLineColor);
+        var icLineColor = "rgba(8,69,148," + icScale(maxIC) + ")";
         icColorArray.push(icLineColor);
       }
     }
 
-
+    // create and store data object for visualization
+    var graphData = [];
     for (i=0; i < captionArray.length; i++){
       var d = {};
       var ySec = hmsToSec(captionArray[i][0]);
@@ -327,8 +319,7 @@ function generateTransGraph(transGraphContainer,
         d.width = lowerCaseLines[i].length/maxTranLine * w;
         // d.width = w;
       } else {
-        var speakerIndex = speakerList
-                              .indexOf(captionArray[i][2]);
+        var speakerIndex = speakerList.indexOf(captionArray[i][2]);
         if (speakerIndex === -1){
           // uncomment the below to show other speakers as well
           // (apart from the participants)
@@ -338,14 +329,13 @@ function generateTransGraph(transGraphContainer,
           d.height = transScaleY(0.9);
           */
         } else {
-          d.x = transScaleX(speakerList.length -
-                            speakerIndex - 1);
+          d.x = transScaleX(speakerList.length - speakerIndex - 1);
           d.fillColor = speakerColors[speakerIndex];
           d.width = transScaleX(0.9);
         }
       }
       if (constantHeight !== 0){
-        d.height = 5;
+        d.height = 1;
       } else {
         var endSec = hmsToSec(captionArray[i][1]);
         d.endTime = endSec;
@@ -354,7 +344,7 @@ function generateTransGraph(transGraphContainer,
         if (scaledHeight < 2){
           d.height = 2;
         } else {
-          d.width = scaledHeight;
+          d.height = scaledHeight;
         };
       }
       d.dialog = captionArray[i][3];
@@ -362,10 +352,9 @@ function generateTransGraph(transGraphContainer,
            (showIC) ) {
         d.fillColor = icColorArray[i];
       }
-      transGraphData.push(d);
+      graphData.push(d);
     }
-
-    console.log(transGraphData);
+    console.log(graphData);
 
     var tip = d3.tip()
                 .attr('class', 'd3-tip')
@@ -373,33 +362,106 @@ function generateTransGraph(transGraphContainer,
                 .direction('e');
     transSvg.call(tip);
     var rects = transSvg.selectAll("rect")
-             .data(transGraphData)
-             .enter()
+             .data(graphData).enter()
              .append("rect")
              .attr("x", function (d) { return d.x; })
              .attr("y", function (d) { return d.y; })
-             .attr("width", function (d) {
-               return d.width;
-             })
+             .attr("width", function (d) { return d.width; })
              .attr("z", 1)
              .attr("height", function (d) { return d.height; })
              .attr("fill", d.fillColor)
-             .on("mouseover", function(d){
-               tip.html("<font size=2 color='" + d.fillColor +
-                        "'>" + d.speaker + ":  </font>" +
-                        d.dialog).show();
-               d3.select(this).attr("height", 5);
+             .on("mouseover", function(d, i){
+               tip.html("<font size=2 color='"+d.fillColor+ "'>"+
+                   d.speaker+":  </font>"+d.dialog).show();
+               // d3.select(this).attr("height", 5);
                if (prevClickedTag === ""){
                  d3.select(this).attr('fill', greenHighlight);
                }
-               // d3.select(this).attr('fill-opacity', 1);
+               d3.select(this).attr('z', 50);
+               $("#transTable tr").eq(i).children().last()
+                                  .addClass("hoverHighlight");
              })
              .on("mouseout", function(d){
                tip.hide();
-               d3.select(this).attr("height", d.height);
+               // d3.select(this).attr("height", d.height);
                if (prevClickedTag === ""){
                  d3.select(this).attr('fill', d.fillColor);
                }
+               d3.select(this).attr('z', 1);
+               $("#transTable").find("td").removeClass("hoverHighlight");
              });
+
+    var fisheye = d3.fisheye.circular().radius(100);
+    transSvg.on('mousemove', function(){
+        // implementing fisheye distortion
+        fisheye.focus(d3.mouse(this));
+        rects.each(function(d) { d.fisheye = fisheye(d); })
+             .attr("y", function(d) { return d.fisheye.y; })
+             .attr("width", function(d) {
+                return d.width * d.fisheye.z;
+             })
+             .attr("height", function(d) { 
+               return d.fisheye.z; 
+             });
+    });
+    transSvg.on('mouseleave', function(){
+        rects.each()
+             .attr("y", d.y)
+             .attr("height", d.height);
+    });
+
+    d3.select(transGraphContainer)
+      .selectAll('svg')
+      .selectAll('rect')
+      .on('click', function (d) {
+      if (d3.event.ctrlKey || d3.event.metaKey){
+        cTime =  new Date();
+        var tempTime = cTime.getHours() + ":" +
+                      cTime.getMinutes() + ":" +
+                      cTime.getSeconds();
+        clickLog.push([tempTime, "transGraphWordCloud\n"]);
+        sendClickData.data = clickLog;
+        $.post("/clicklog", sendClickData, function (data, error) { });
+        // if a speaker's transcript timeline is ctrl-clicked,
+        // show a word cloud based on only that speaker's utterances
+      } else {
+        var graphIndex = $(transGraphContainer+' svg')
+                          .children('rect')
+                          .index(this);
+        console.log(captionArray.length);
+        var captionStartTimeMin = captionArray[graphIndex][0]
+        captionStartTimeSec = hmsToSec(captionStartTimeMin);
+        
+        // send log to server
+        cTime =  new Date();
+        var tempTime = cTime.getHours() + ":" +
+                      cTime.getMinutes() + ":" +
+                      cTime.getSeconds();
+        clickLog.push([tempTime, "transGraph",
+                      captionStartTimeSec + "\n"]);
+        sendClickData.data = clickLog;
+        $.post("/clicklog", sendClickData, function (data, error) { });
+
+        // add hhighlight to the transcript, and scroll to the
+        // corresponding line
+        var transClickItem = $('#transTable tr').eq(graphIndex)
+                                                .children().last();
+        transClickItem.addClass('hoverHighlight');
+        // this small snippet below to scroll the transcript to show
+        // the line corresponding to the item selected in transgraph
+        if (graphIndex > 10){
+          scrollIndex = graphIndex-10;
+        } else {
+          scrollIndex = 0;
+        }
+        var transScrollItem = $('#transTable tr')
+                                  .eq(scrollIndex)
+                                  .children().last();
+        $('#transContent').scrollTo($(transScrollItem),
+                                    {duration: 'slow',
+                                    transition: 'ease-in-out'});
+      }
+    });
+    return graphData;
 }
 

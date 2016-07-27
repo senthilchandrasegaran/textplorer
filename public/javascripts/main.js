@@ -33,6 +33,7 @@ var selectedText = '';
 var spanCollection = [];
 var orgSpanCollection = [];
 var transGraphData = []; // data structure for transGraph display
+var icGraphData = []; // data structure for information content graph
 var prevClickedTag = "";
 var isTagClicked = false;
 var clickLog = [];
@@ -262,7 +263,6 @@ function concordance(word) {
           concordances = concordances.concat(row);
     }
     concordances = concordances.concat("</table>");
-    console.log(concordances);
     return concordances;
 }
 
@@ -370,7 +370,8 @@ window.onload = function () {
 
       // player.ready(function () {
       // representation of lines in transcript overall window
-      generateTransGraph("#transGraphContent", // transcript graph
+      transGraphData = generateTransGraph(
+                          "#transGraphContent", // transcript graph
                           captionArray, // array from text uploaded
                           speakerList,  // list of speakers
                           speakerDiff,  // 1=yes, 0=no
@@ -425,10 +426,7 @@ window.onload = function () {
                 return (this.textContent).toLowerCase().match(regex);
               }).parents("td");
         transItems.addClass('hoverHighlight');
-
-        //---------------------------------------------------------
         // Highlight corresponding items in transGraph
-        //----------------------------------------------
         var transItemIds = [];
         var hiRects = $("#transGraphContent svg").children('rect');
         if (isTagClicked){
@@ -439,7 +437,7 @@ window.onload = function () {
           transItems.each(function (index, value) {
             var idIndex = value.parentNode.rowIndex;
             transItemIds.push(idIndex);
-            // change color of vertical text rep bars
+            // change color of text rep bars
             d3.select(hiRects[idIndex])
               .attr("fill", oldHighlighting);
             var numLines = hiRects.length;
@@ -606,16 +604,15 @@ window.onload = function () {
       // Add highlighting on mouseenter
       $('#transTable').on('mouseenter', 'tr', function () {
           $(this).children().last().addClass('transHighlight');
-          //----------------------------------------------
-          // add bars of highlighted bits next to seekbar
-          //----------------------------------------------
           var transItemIds = []
           var idIndex = this.rowIndex;
           transItemIds.push(idIndex);
-          // change color of vertical text rep bars
-          var hiRects = $("#transGraphContent svg")
-                          .children('rect');
+          // change color of text rep bars
+          var hiRects = $("#transGraphContent svg").children('rect');
           d3.select(hiRects[idIndex])
+            .classed("transRectHighLight", true);
+          var icRects = $("#icGraphContent svg").children('rect');
+          d3.select(icRects[idIndex])
             .classed("transRectHighLight", true);
           // .attr("fill", mildHighlightColor);
           var timeSegArray = [];
@@ -633,7 +630,9 @@ window.onload = function () {
       // remove highlighting on mouse leave
       $('#transTable').on('mouseleave', 'tr', function () {
           $(this).children().removeClass('transHighlight');
-          d3.select("#transGraphContent").selectAll("svg")
+          d3.select("#transGraphContent svg").selectAll("rect")
+            .classed("transRectHighLight", false);
+          d3.select("#icGraphContent svg").selectAll("rect")
             .classed("transRectHighLight", false);
       });
 
@@ -641,126 +640,10 @@ window.onload = function () {
       // end of highlighting on mouseover for transcript
       //---------------------------------------------------------------
 
-      // Allow interaction with seesoft-like visualization
-      $('#transGraphContent').find('svg').first()
-                      .on('mouseenter', 'rect', function () {
-          // implementing fisheye distortion
-          var localDistort = 1;
-          if (localDistort != 0){
-            var fisheyesvg = d3.select("#transGraphContent")
-                               .selectAll("svg");
-            var frects = fisheyesvg.selectAll("rect");
-            var fisheye = d3.fisheye.circular()
-                            .radius(50);
-            fisheyesvg.on("mousemove", function(){
-              fisheye.focus(d3.mouse(this));
-              frects.each(function(d){
-                        d.fisheye = fisheye(d);
-                     })
-                     .attr("y", function (d) {
-                       return d.fisheye.y;
-                     });
-            });
-          }
-          // $(this).attr("fill", greenHighlight);
-          $(this).attr("z", 50);
-          var transGraphIndex = $('#transGraphContent svg')
-                            .children('rect').index(this);
-
-          // light highlighting of transcript
-          // videoDuration = player.duration();
-          var transItem = $('#transTable tr').eq(transGraphIndex)
-                                             .children().last();
-          transItem.addClass('hoverHighlight');
-          // note: 'eq' returns jquery object at index.
-          // For DOM object at index use 'get'
-      }); // end of transGraph onmouseenter function.
-
-      $('#transGraphContent').on('mouseleave', 'svg rect', function () {
-          // $(this).attr("fill", transGraphColor);
-          $(this).attr("z", 1);
-
-          // remove light highlighting on mouse leave
-          $("#transTable").find("td").removeClass('hoverHighlight');
-      }); // end of transGraph onmouseleave function
 
       // var player = videojs('discussion-video');
-      var videoDuration = 0
+      // var videoDuration = 0
       // player.ready(function () {
-        d3.select('#transGraphContent')
-          .selectAll('svg')
-          .selectAll('rect')
-          .on('click', function (d) {
-          if (d3.event.ctrlKey || d3.event.metaKey){
-            cTime =  new Date();
-            var tempTime = cTime.getHours() + ":" +
-                          cTime.getMinutes() + ":" +
-                          cTime.getSeconds();
-            clickLog.push([tempTime, "transGraphWordCloud\n"]);
-            sendClickData.data = clickLog;
-            $.post("/clicklog", sendClickData, function (data, error) { });
-            // if a speaker's transcript timeline is ctrl-clicked,
-            // show a word cloud based on only that speaker's utterances
-            var lineCollection = [];
-              // select all coded objects by code ID
-              var sameSpeakerObjs = $.grep(transGraphData, function(e){
-                return e.speaker == d.speaker;
-              });
-              var speakerID = sameSpeakerObjs[0].speaker;
-              // color all spans in these objects persistently
-              for (var ind=0; ind<sameSpeakerObjs.length; ind++){
-                var currentObj = sameSpeakerObjs[ind];
-                var speakerWords = currentObj
-                                    .dialog
-                                    .toLowerCase()
-                                    .split(wordSeparators);
-                lineCollection.push(speakerWords);
-                // exempt these rectangles from mouseover,
-                // mouseout events.
-                currentObj.clickStatus = 1;
-              }
-              // change the background of the taglist to reflect the
-              // speaker color, so that the user gets the context.
-              $("#tagList").empty();
-              $("#tagList").append(makeWordList(lineCollection,
-                                                textMetadata,
-                                                tagsToRemove));
-              $("#tagList").css("background-color",
-                    speakerColors[parseInt(speakerID.split("F")[1])-1]);
-          } else {
-            var transGraphIndex = $('#transGraphContent svg')
-                                    .children('rect')
-                                    .index(this);
-            var captionStartTimeMin = captionArray[transGraphIndex][0]
-            captionStartTimeSec = hmsToSec(captionStartTimeMin);
-            // player.currentTime(captionStartTimeSec);
-            cTime =  new Date();
-            var tempTime = cTime.getHours() + ":" +
-                          cTime.getMinutes() + ":" +
-                          cTime.getSeconds();
-            clickLog.push([tempTime, "transGraph",
-                          captionStartTimeSec + "\n"]);
-            sendClickData.data = clickLog;
-            $.post("/clicklog", sendClickData,
-                   function (data, error) { });
-            var transClickItem = $('#transTable tr').eq(transGraphIndex)
-                                                    .children().last();
-            transClickItem.addClass('hoverHighlight');
-            // this small snippet below to scroll the transcript to show
-            // the line corresponding to the item selected in transgraph
-            if (transGraphIndex > 10){
-              scrollIndex = transGraphIndex-10;
-            } else {
-              scrollIndex = 0;
-            }
-            var transScrollItem = $('#transTable tr')
-                                      .eq(scrollIndex)
-                                      .children().last();
-            $('#transContent').scrollTo($(transScrollItem),
-                                        {duration: 'slow',
-                                        transition: 'ease-in-out'});
-          }
-        });
       // }); player ready function
 
       // toggle the size of the transGraph div
@@ -1611,7 +1494,6 @@ window.onload = function () {
     }).done(function (data) {
         var infoContentString = JSON.parse(data);
         textMetadata = JSON.parse(infoContentString.data);
-        console.log(textMetadata);
         $('#showIC').prop('checked', true);
         textICVis($("#transContent"), textMetadata);
         $("#tagList").empty()
@@ -1620,13 +1502,15 @@ window.onload = function () {
         $("#tagList").append(makeWordList(lowerCaseLines,
                                           textMetadata,
                                           tagsToRemove));
-        generateTransGraph("#icGraphContent", // transcript graph
+        icGraphData = generateTransGraph(
+                            "#icGraphContent", // transcript graph
                             captionArray, // array from text uploaded
                             speakerList,  // list of speakers
                             speakerDiff,  // 1=yes, 0=no
                             lowerCaseLines, // all lines in lowercase
                             textMetadata, // object with all ICs
-                            true);  // whether or not to show IC
+                            true // whether or not to show IC
+                      );
     });
 
 

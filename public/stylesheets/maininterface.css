@@ -231,7 +231,9 @@ label:hover {
 */
 
 .transRectHighLight{
-  fill: "rgba(220, 138, 12, 0.3)";
+  fill: rgba(220, 138, 12, 0.3);
+  width: 100%;
+  height: 5px;
 }
 
 #docAbstractions{
