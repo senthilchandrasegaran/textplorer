@@ -53,7 +53,9 @@
     }
   </style>
   <script src="javascripts/libraries/jquery.js"></script>
+  <!--
   <script src="/socket.io/socket.io.js"></script>
+  -->
 </head>
 <div id="maindiv">
   <h1>GT Helper</h1>
@@ -70,21 +72,6 @@
     </tr>
     <tr>
       <td>
-        <label for=<%= inputvideo.id %> >Select a video file: </label>
-        <input id="VideoFileBox" type="file" accept="video/*" />
-        <output id=<%= outputvideo.id %> />
-      </td>
-      <td>Video</td>
-      <td>
-        <div id="videoprog">
-          <progress id='videoProgress' max='100' value='0'></progress>
-          <span id=vidProg></span>
-          <span id=videoMB></span>
-      </div>
-      </td>		
-    </tr>
-    <tr>
-      <td>
         <label for=<%= inputtrans.id %> >Select a transcript file: </label>
         <input id=<%= inputtrans.id %> type="file" />
         <output id=<%= outputtrans.id %> />
@@ -93,47 +80,6 @@
       <td><div id='transProgress'></div></td>
     </tr>
     <tr>
-      <td>
-        <label for=<%= sketchlog.id %> >Select a sketch log file: </label>
-        <input id=<%= sketchlog.id %> type="file" />
-        <output id=<%= outputlog.id %> />
-      </td>
-      <td>Log File</td>		
-      <td><div id='logProgress'></div></td>
-    </tr>
-    <tr>
-      <td>
-        <label for="zipFileId" >Select zip file for sketches: </label>
-        <input id="ZipFileBox" type="file" />
-        <output id="zipFileOutput" />
-      </td>
-      <td>Sketch Files (zip)</td>		
-      <td>
-        <div id='sketchProgress'>
-          <progress id='imageProgress' max='100' value='0'></progress>
-          <span id=imgProg></span>
-          <span id=imageMB></span>
-        </div>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <label for=<%= speechlog.id %> >Select speech log file: </label>
-        <input id=<%= speechlog.id %> type="file" />
-        <output id=<%= outputSpeechLog.id %> />
-      </td>
-      <td>CSV File</td>		
-      <td><div id='speechLogProgress'></div></td>
-    </tr>
-    <tr>
-      <td>
-        <label for=<%= activitylog.id %> >Select activity log file: </label>
-        <input id=<%= activitylog.id %> type="file" />
-        <output id=<%= outputActivityLog.id %> />
-      </td>
-      <td>CSV File</td>		
-      <td><div id='activityLogProgress'></div></td>
-    </tr>
   </table>
 
   <!-->

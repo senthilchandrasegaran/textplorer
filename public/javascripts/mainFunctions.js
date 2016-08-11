@@ -127,6 +127,71 @@ function textICVis(displayTextObj, textMetadataObj){
   });
 }
 
+// Re-display text with highlighting to show People names
+function tagText(textObj, textMetadataObj, tagName, highlightClass){
+  // identify all the span elements in the displayed text;
+  var allSpans = textObj.find("span");
+  allSpans.each(function() {
+    var spanText, spanTextLow, tagToLookup, nameTagList;
+    spanTextLow = $(this).text().trim().toLowerCase();
+    spanText = spanTextLow.replace(/[^a-zA-Z0-9\-]/g, "");
+
+    // check if the tagName is named entity or POS
+    if (["PERSON", "LOCATION"].indexOf(tagName) !== -1) {
+        
+        // for NER, the tagnames can be applied directly
+        if (spanText in textMetadataObj) {
+            var nameTag = textMetadataObj[spanText]["NameTag"];
+            console.log(nameTag);
+        } 
+        if (nameTag === tagName) {
+            $(this).addClass(highlightClass);
+        }
+
+    } else {
+
+        // for POS, there are groups of tags for each part of speech.
+        if (tagName === "noun"){
+            console.log("Supplied tagName is a noun.");
+            nameTagList = ["NN", // common noun, singular or mass 
+                           "NNP", // proper noun, singular
+                           "NNS"];  // common noun, plural
+        
+        } else if (tagName === "verb") {
+            console.log("Supplied tagName is a verb.");
+            nameTagList = ["VB", // verb in base form
+                           "VBD", // verb, past tense
+                           "VBG", // verb, present participle or gerund
+                           "VBN", // verb, past participle
+                           "VBP", // verb, prs.tense, not 3rd p.singular
+                           "VPZ"]; // verb, present tense, 3rd p.singular
+        } else if (tagName === "adjective") {
+            console.log("Supplied tagName is an adjective.");
+            nameTagList = ["JJ", // adjective or numeral, ordinal
+                           "JJR", // comparative adjective
+                           "JJS"]; // superlative adjective
+        } else if (tagName === "adverb"){
+            console.log("Supplied tagName is an adverb.");
+            nameTagList = ["RB", //adverb
+                           "RBR", // comparative adverb
+                           "RBS"]; // superlative adverb
+        } else {
+            console.log("Supplied tagName is not recognizable.");
+        }
+
+        if (spanText in textMetadataObj) {
+            var nameTag = textMetadataObj[spanText]["POS"];
+        } 
+        if (nameTagList.indexOf(nameTag) !== -1) {
+            console.log(nameTag);
+            $(this).addClass(highlightClass);
+        }
+
+    }
+
+  });
+}
+
 // Function that takes all the lines in the transcript, removes stop
 // words, and returns a list of words and their frequencies.
 // "wordsToRemove" is an optional argument. It represents a list of
@@ -240,11 +305,23 @@ function makeWordList(lowerCaseLines,textMetadataObj,wordsToRemove) {
   return tagspans;
 }
 
-function generateTransGraph(transGraphContainer, captionArray,
+function removeEmptyLines(textArray){
+    var lastRow = textArray[textArray.length-1];
+    console.log(lastRow);
+    if (textArray[textArray.length-1][0] != "") {
+        return textArray;
+    } else {
+        removeEmptyLines(textArray.slice(1, textArray.length));
+    }
+}
+
+function generateTransGraph(transGraphContainer, rawCaptionArray,
     speakerList, speakerDiff, lowerCaseLines, textMetadataObj, showIC) {
     
+    captionArray = removeEmptyLines(rawCaptionArray);
     d3.select(transGraphContainer).selectAll("svg").remove();
     var w = $(transGraphContainer).width();
+    console.log(captionArray[captionArray.length-1]);
     docLength = hmsToSec(captionArray[captionArray.length-1][0]);
     var h = $(transGraphContainer).height();
     var transSvg = d3.select(transGraphContainer).append("svg")

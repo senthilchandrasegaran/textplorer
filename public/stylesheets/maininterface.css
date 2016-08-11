@@ -96,7 +96,7 @@ p {
 .options{
     border-color: #c9c9c9;
     padding-top: 10px;
-    padding-bottom: 10px;
+    padding-bottom: 20px;
     height: 5%;
     width:100%;
     background:#FFFFFF;
@@ -132,7 +132,7 @@ path.link {
   font-family: helvetica, sans-serif;
 }
 #transcriptDiv{
-  height:85%!important;
+  height:83%!important;
   width:100%;
   background:#FFFFFF;
   overflow: hidden;
@@ -145,12 +145,6 @@ path.link {
               */
 }
 
-#annotDiv{
-  height: 100%;
-  width: 100%;
-  float: left;
-  overflow: auto;
-}
 #transContent{
   float: left;
   height: 100%;
@@ -213,13 +207,73 @@ h3{
   color: #777;
 }
 
+#transcriptOptions{
+    height: 7%!important;
+}
+
 label {
- margin-right: 10px;
+ margin-right: 15px;
+ margin-top: 5px;
+ margin-bottom: 5px;
 }
 
 label:hover {
  background:#eee;
  cursor:pointer;
+ color: #000;
+}
+
+/* Checkboxes */
+#checkboxTable{
+    width: 100%;
+}
+
+input[type=checkbox]{
+    vertical-align: middle;
+    position: relative;
+    bottom: 1px;
+}
+
+.people{
+    background-color: #fbb4ae;
+    padding: 2px;
+    border-radius: 4px;
+}
+
+.places{
+    background-color: #b3cde3;
+    padding: 2px;
+    border-radius: 4px;
+}
+
+.orgs{
+    background-color: #ccebc5;
+    padding: 2px;
+    border-radius: 4px;
+}
+
+.nouns{
+    background-color: #decbe4;
+    padding: 2px;
+    border-radius: 4px;
+}
+
+.verbs{
+    background-color: #ffffcc;
+    padding: 2px;
+    border-radius: 4px;
+}
+
+.adjectives{
+    background-color: #e5d8bd;
+    padding: 2px;
+    border-radius: 4px;
+}
+
+.adverbs{
+    background-color: #fddaec;
+    padding: 2px;
+    border-radius: 4px;
 }
 
 /*
@@ -632,3 +686,4 @@ article {
   word-wrap: break-word;
   max-width: 250px;
 }
+

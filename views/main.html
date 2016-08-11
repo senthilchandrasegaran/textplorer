@@ -83,16 +83,56 @@
         </div>
     </div>
     <div id="transcriptOptions" class="options">
-      <p class="blockHead">Options</p>
+      <p class="blockHead">Highlight:</p>
       <div class="blockSubHead">
-        <label>
-          <input type="checkbox" id="showIC" />
-            Show information content
-        </label>
-        <label>
-          <input type="checkbox" id="showNames" />
-            Show named entities
-        </label>
+          <table id="checkboxTable">
+              <tr>
+                  <td>
+                    <label>
+                      <input type="checkbox" id="showIC" />
+                        Information content
+                    </label>
+                  </td>
+                  <td>
+                    <label>
+                      <input type="checkbox" id="showPeople" />
+                      <text class="people">People</text>
+                    </label>
+                  </td>
+                  <td>
+                    <label>
+                      <input type="checkbox" id="showPlaces" />
+                      <text class="places">Places</text>
+                    </label>
+                  </td>
+                  <td>
+                    <label>
+                      <input type="checkbox" id="showNouns" />
+                      <text class="nouns">Nouns</nouns>
+                    </label>
+                  </td>
+              </tr>
+              <tr>
+                  <td>
+                    <label>
+                      <input type="checkbox" id="showVerbs" />
+                      <text class="verbs">Verbs</verbs>
+                    </label>
+                  </td>
+                  <td>
+                    <label>
+                      <input type="checkbox" id="showAdjectives" />
+                      <text class="adjectives">Adjectives</text>
+                    </label>
+                  </td>
+                  <td>
+                    <label>
+                      <input type="checkbox" id="showAdverbs" />
+                      <text class="adverbs">Adverbs</text>
+                    </label>
+                  </td>
+              </tr>
+          </table>
       </div>
     </div>
   </div>

@@ -97,7 +97,6 @@ var speakerColors = [
     ];
 
 
-
 // Color list to use for code definitions
 // Note: the color list below is instantiated in reverse order in the
 // interface.
@@ -244,7 +243,8 @@ function concordance(word) {
         var index = indices[i];
         var left = index - textWindow < 0 ? 0 : index - textWindow;
         var right = index+textWindow+word.length >allCaptions.length-1?
-                    allCaptions.length-1 : index + textWindow + word.length;
+                    allCaptions.length-1 : index + textWindow + 
+                    word.length;
         var row = "<tr>" +
                     "<td align='right'>" +
                     allCaptions.substring(left, index - 1) +
@@ -287,26 +287,19 @@ $(function(){
 // removed and the resulting tags are scaled by frequency and showed on
 // the right pane.
 window.onload = function () {
-  // determine div heights as specified in the html file
-  bottomLeftHeight = $("#bottomleft").height();
-  sketchesHeight = $("#sketches").height();
-  transGraphWidth = $("#transGraph").width();
-  icGraphWidth = $("#icGraph").width();
-  sketchLogHeight = $("#sketchLog").height();
-  speechLogHeight = $("#speechLog").height();
-  activityLogHeight = $("#activityLog").height();
-  protocolGraphHeight = $("#protocolGraph").height();
+    transGraphWidth = $("#transGraph").width();
+    icGraphWidth = $("#icGraph").width();
 
-  /* TO ADD NEW DATASET
-   * Make a copy of the below line of code,
-   * Uncomment it, and change `newDataSeries' and `newDataSeriesHeight'
-   * to a more meaningful name consistent with the other files
-   * IMPORTANT: See the Wiki for details now how to do this properly!
-   */
-  // newDataSeriesHeight = $("#newDataSeries").height();
+    /**************************************
+     * TO ADD NEW DATASET
+     * Make a copy of the below line of code,
+     * Uncomment it, and change `newDataSeries' and `newDataSeriesHeight'
+     * to a more meaningful name consistent with the other files
+     * IMPORTANT: See the Wiki for details now how to do this properly!
+     **************************************
+    */
+    // newDataSeriesHeight = $("#newDataSeries").height();
 
-  // var player = videojs('discussion-video');
-  // player.on('loadedmetadata', function () {
     var transcriptFile;
     var fileTemp = $.ajax({
       type: "GET", // can remove this to avoid confusion
@@ -368,7 +361,6 @@ window.onload = function () {
       }
       numLines = displayLines.length;
 
-      // player.ready(function () {
       // representation of lines in transcript overall window
       transGraphData = generateTransGraph(
                           "#transGraphContent", // transcript graph
@@ -379,18 +371,16 @@ window.onload = function () {
                           textMetadata, // object with all ICs
                           false);  // whether or not to show IC
       // end representation of lines
-      // }); // end player.ready()
 
       $("#tagList").empty()
       $("#tagList").css("background-color", "#ffffff");
-      // $("#tagList").append(tagspans);
       $("#tagList").append(makeWordList(lowerCaseLines,
                                         textMetadata,
                                         tagsToRemove));
 
       // Remove tag on right click
       var tagListDOM = $('#tagList');
-      tagListDOM.oncontextmenu = function () { return false; }
+      tagListDOM.oncontextmenu = function () { return false; };
       tagListDOM.on('mousedown', 'text', function (e) {
         if (e.button == 2) {
           var isRemoveTag = confirm("Remove tag: " +
@@ -640,24 +630,11 @@ window.onload = function () {
       // end of highlighting on mouseover for transcript
       //---------------------------------------------------------------
 
-
-      // var player = videojs('discussion-video');
-      // var videoDuration = 0
-      // player.ready(function () {
-      // }); player ready function
-
       // toggle the size of the transGraph div
-      toggleMinMax("transGraphTitle", "transGraph", "Graphical View of Transcript", transGraphWidth);
-      toggleMinMax("icGraphTitle", "icGraph", "Graphical View of Information Content", icGraphWidth);
-
-      // toggle the size of the sketchLog div
-      // toggleMinMax("sketchLogTitle", "sketchLog", "Sketch Participation Chart", sketchLogHeight);
-
-      // toggle the size of the speechLog div
-      // toggleMinMax("speechLogTitle", "speechLog", "Speech Participation Chart", speechLogHeight);
-
-      // toggle the size of the activityLog div
-      // toggleMinMax("activityLogTitle", "activityLog", "Activity Level Chart", activityLogHeight);
+      toggleMinMax("transGraphTitle", "transGraph",
+          "Graphical View of Transcript", transGraphWidth);
+      toggleMinMax("icGraphTitle", "icGraph",
+          "Graphical View of Information Content", icGraphWidth);
 
       /* TO ADD NEW DATASET
        * Make a copy of the below line of code,
@@ -1374,7 +1351,8 @@ window.onload = function () {
             .empty();
         } // end of code that determines what happens when the
           // contextmenu is clicked on.
-      }); // end of code that decides what happens when an item is clicked on the context menu
+      }); // end of code that decides what happens when an item is
+          // clicked on the context menu
 
       // remove context menu when clicked elsewhere
       $('#transContent').on('click', function () {
@@ -1385,107 +1363,6 @@ window.onload = function () {
             .empty();
       });
     }); // end of file ajax code
-
-    // Function to read in the log file
-    var logFile;
-    var fileTemp1 = $.ajax({
-        type: "GET",
-        url: "/receive_log_file",
-        dataType: "text"
-    }).done(function (data) {
-      if (typeof data === 'string' &&
-          data !== ""){
-        console.log("sketch log file received!");
-        sketchViz(data, transGraphData);
-        // check file sketchViz.js for how this function works
-        $("#sketchLogContent").on("click", function(){
-          // var playerTime = player.currentTime();
-        //
-          cTime =  new Date();
-          var tempTime = cTime.getHours() + ":" +
-                        cTime.getMinutes() + ":" +
-                        cTime.getSeconds();
-          clickLog.push([tempTime, "sketchLogContent", "\n"]);
-          sendClickData.data = clickLog;
-          $.post("/clicklog", sendClickData, function (data, error) { });
-        //
-        });
-      } else {
-        $('#sketchLogTitle').hide();
-        $('#sketchLog').hide();
-        console.log("sketch divs are now hidden");
-      }
-    }); // End code to generate paths
-    // End Stuff to execute when log file loaded
-
-    // Function to read in the speech log file
-    var speechLogFile;
-    var fileTemp2 = $.ajax({
-        type: "GET",
-        url: "/receive_speechLog_file",
-        dataType: "text"
-    }).done(function (speechdata){
-      if (typeof speechdata === "string" &&
-          speechdata !== ""){
-        speechdata = JSON.parse(speechdata);
-        console.log("speech log file received!");
-        speechViz(speechdata, player, transGraphData);
-        // check file speechViz.js for how this function works
-        $("#speechLogContent").on("click", function(){
-          var playerTime = player.currentTime();
-        //
-          cTime =  new Date();
-          var tempTime = cTime.getHours() + ":" +
-                        cTime.getMinutes() + ":" +
-                        cTime.getSeconds();
-          clickLog.push([tempTime, "speechLogContent",
-                        playerTime + "\n"]);
-          sendClickData.data = clickLog;
-          $.post("/clicklog", sendClickData, function (data, error) { });
-        //
-        });
-      } else {
-        // hide everything!
-        $('#speechLogTitle').hide();
-        $('#speechLog').hide();
-        console.log("speech divs are now hidden");
-      }
-    }); // end of stuff to do with speechLog
-
-    // Function to read in the activity log file
-    var activityLogFile;
-    var fileTemp2 = $.ajax({
-        type: "GET",
-        url: "/receive_activityLog_file",
-        dataType: "text"
-    }).done(function (activitydata) {
-      if (typeof activitydata === "string" &&
-          activitydata !== ""){
-        activitydata = JSON.parse(activitydata);
-        console.log("activity log file received!");
-        // generate beautiful visuals
-        activityViz(activitydata, player, transGraphData);
-        // check file activityViz.js for how this function works
-        $("#activityLogContent").on("click", function(){
-          var playerTime = player.currentTime();
-          //
-          cTime =  new Date();
-          var tempTime = cTime.getHours() + ":" +
-                        cTime.getMinutes() + ":" +
-                        cTime.getSeconds();
-          clickLog.push([tempTime, "activityLogContent",
-                        playerTime+"\n"]);
-          sendClickData.data = clickLog;
-          $.post("/clicklog", sendClickData, function (data, error) { });
-          //
-        });
-      } else {
-        // hide everything!
-        $('#activityLogTitle').hide();
-        $('#activityLog').hide();
-        console.log("activity divs are now hidden");
-      }
-    }); // end of stuff to do with activityLog
 
     var fileTemp3 = $.ajax({
         type: "POST",
@@ -1498,7 +1375,6 @@ window.onload = function () {
         textICVis($("#transContent"), textMetadata);
         $("#tagList").empty()
         $("#tagList").css("background-color", "#ffffff");
-        // $("#tagList").append(tagspans);
         $("#tagList").append(makeWordList(lowerCaseLines,
                                           textMetadata,
                                           tagsToRemove));
@@ -1523,6 +1399,67 @@ window.onload = function () {
           });
       } else {
         textICVis($("#transContent"), textMetadata);
+      }
+    });
+
+    $('#showPeople').change(function(){
+      if (!($(this).is(':checked'))) {
+          $("#transContent").find("span").each(function() {
+              $(this).removeClass("people");
+          });
+      } else {
+        tagText($("#transContent"), textMetadata, "PERSON", "people");
+      }
+    });
+
+    $('#showPlaces').change(function(){
+      if (!($(this).is(':checked'))) {
+          $("#transContent").find("span").each(function() {
+              $(this).removeClass("places");
+          });
+      } else {
+        tagText($("#transContent"), textMetadata, "LOCATION", "places");
+      }
+    });
+
+    $('#showNouns').change(function(){
+      if (!($(this).is(':checked'))) {
+          $("#transContent").find("span").each(function() {
+              $(this).removeClass("nouns");
+          });
+      } else {
+        tagText($("#transContent"), textMetadata, "noun", "nouns");
+      }
+    });
+
+    $('#showVerbs').change(function(){
+      if (!($(this).is(':checked'))) {
+          $("#transContent").find("span").each(function() {
+              $(this).removeClass("verbs");
+          });
+      } else {
+        tagText($("#transContent"), textMetadata, "verb", "verbs");
+      }
+    });
+
+    $('#showAdverbs').change(function(){
+      if (!($(this).is(':checked'))) {
+          $("#transContent").find("span").each(function() {
+              $(this).removeClass("adverbs");
+          });
+      } else {
+        tagText($("#transContent"), textMetadata, "adverb", "adverbs");
+      }
+    });
+
+    $('#showAdjectives').change(function(){
+      if (!($(this).is(':checked'))) {
+          $("#transContent").find("span").each(function() {
+              $(this).removeClass("adjectives");
+          });
+      } else {
+        tagText($("#transContent"), textMetadata, "adjective",
+                "adjectives");
       }
     });
 
@@ -1555,7 +1492,6 @@ window.onload = function () {
     }); // end of stuff to do with newDataSeries
     */
 
-  //}); //player.ready attempt for the whole code chunk
 } // end of window.onload code
 
 // NOTES FOR CODE FOLDING in VIM:

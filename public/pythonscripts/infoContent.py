@@ -5,9 +5,11 @@ from nltk.corpus import wordnet_ic
 from nltk.corpus import stopwords
 from nltk.corpus.reader.wordnet import information_content
 from nltk.tokenize import sent_tokenize
+from nltk.tag import StanfordNERTagger
+import re
+
 import itertools
 import codecs
-import re
 import pprint as pp
 import operator
 from collections import OrderedDict
@@ -16,6 +18,10 @@ import json
 
 brown_ic = wordnet_ic.ic('ic-brown.dat')
 ic_bnc_plus1 = wordnet_ic.ic('ic-bnc-add1.dat')
+NERModelPath = "C:/StanfordNER/nlp/models/ner/"
+NERModel = "english.conll.4class.caseless.distsim.crf.ser.gz"
+    # NOTE : the 4 classes are Person, Location, Organization, Misc
+NER = StanfordNERTagger(NERModelPath + NERModel)
 
 def getMetadata(textData):
     ic_freq_obj = {}
@@ -51,15 +57,25 @@ def getMetadata(textData):
                     tempNum = 1
                     break
             if tempNum == 1:
-                infoContent = information_content(synsetItem,
+                infoContentValue = information_content(synsetItem,
                                                   ic_bnc_plus1)
-                icArray.append((token, infoContent))
+                icArray.append((token, infoContentValue))
             else :
                 icArray.append((token, 0.0))
+
+    # StanfordNER and POS tagging is too slow if called in a loop. It
+    # works better when a list is passed to it. So we do this:
+    POSTuplesList = nltk.pos_tag(uniquetokens)
+    POSDict = dict((word, tag) for word, tag in POSTuplesList)
+    NERTuplesList = NER.tag(uniquetokens)
+    NERDict = dict((word, tag) for word, tag in NERTuplesList)
+
     for word, ic in icArray:
         metric = {}
         metric["infoContent"] = ic
         metric["frequency"] = frequencyDict[word]
+        metric["POS"] = POSDict[word]
+        metric["NameTag"] = NERDict[word]
         ic_freq_obj[word] = metric
     ic_freq_str = str(ic_freq_obj)
     icDict = ic_freq_str.replace("'", '"')
