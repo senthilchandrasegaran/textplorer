@@ -258,6 +258,12 @@ input[type=checkbox]{
     border-radius: 4px;
 }
 
+.names{
+    background-color: #b3de69;
+    padding: 2px;
+    border-radius: 4px;
+}
+
 .verbs{
     background-color: #ffffcc;
     padding: 2px;

@@ -127,36 +127,101 @@ function textICVis(displayTextObj, textMetadataObj){
   });
 }
 
-// Re-display text with highlighting to show People names
-function tagText(textObj, textMetadataObj, tagName, highlightClass){
-  // identify all the span elements in the displayed text;
-  var allSpans = textObj.find("span");
-  allSpans.each(function() {
-    var spanText, spanTextLow, tagToLookup, nameTagList;
-    spanTextLow = $(this).text().trim().toLowerCase();
-    spanText = spanTextLow.replace(/[^a-zA-Z0-9\-]/g, "");
-
-    // check if the tagName is named entity or POS
-    if (["PERSON", "LOCATION"].indexOf(tagName) !== -1) {
-        
-        // for NER, the tagnames can be applied directly
-        if (spanText in textMetadataObj) {
-            var nameTag = textMetadataObj[spanText]["NameTag"];
-            console.log(nameTag);
-        } 
-        if (nameTag === tagName) {
-            $(this).addClass(highlightClass);
+function getTagCounts(lookupTags, tagKey, sentenceTags){
+    /* lookupTags: a list of tags that indicate a certain part of speech
+     *             or named entity
+     * tagKey: can take 2 values; "POS" or "NER"
+     * sentenceTags: a sentence-wise organized list of {word : metadata}
+     *               objects.
+     * Given a list of POS (not NER!) tags and a list of sentences
+     * tagged with similar tags, it counts the total occurrences of the
+     * given list of tags and returns it 
+     */
+    var tagCount = 0;
+    for (var sentInd=0; sentInd<sentenceTags.length; sentInd++){
+        sentArray = sentenceTags[sentInd];
+        for (var tagInd=0; tagInd<sentArray.length; tagInd++){
+            tagObj = sentArray[tagInd];
+            word = Object.keys(tagObj)[0];
+            NERTag = tagObj[word][tagKey];
+            if (lookupTags.indexOf(NERTag) !== -1){
+                tagCount++;
+            }
         }
+    }
+    return tagCount;
+}
 
+function tagWordCloud(wordCloudObj, textMetadataObj, tagName, highlightClass){
+
+    var tagListType, nameTagList, currentWord, listOfTags, nameTag;
+    if (["PERSON", "LOCATION"].indexOf(tagName) !== -1){
+        tagListType = "NERList";
+        nameTagList = [tagName];
     } else {
+        tagListType = "POSList";
+        if (tagName === "noun"){
+            nameTagList = ["NN", // common noun, singular or mass 
+                           "NNS"];  // common noun, plural
+        
+        } else if (tagName === "name") {
+            nameTagList = ["NNP"]; // proper noun, singular
+        } else if (tagName === "verb") {
+            nameTagList = ["VB", // verb in base form
+                           "VBD", // verb, past tense
+                           "VBG", // verb, present participle or gerund
+                           "VBN", // verb, past participle
+                           "VBP", // verb, prs.tense, not 3rd p.singular
+                           "VPZ"]; // verb, present tense, 3rd p.singular
+        } else if (tagName === "adjective") {
+            nameTagList = ["JJ", // adjective or numeral, ordinal
+                           "JJR", // comparative adjective
+                           "JJS"]; // superlative adjective
+        } else if (tagName === "adverb"){
+            nameTagList = ["RB", //adverb
+                           "RBR", // comparative adverb
+                           "RBS"]; // superlative adverb
+        } else {
+            console.log("Supplied tagName is not recognizable.");
+        }
+    }
 
-        // for POS, there are groups of tags for each part of speech.
+    var wordCloudList = $(wordCloudObj).find("text");
+    for (var i=0; i<wordCloudList.length;i++){
+        currentWord = wordCloudList[i].innerHTML.trim().toLowerCase();
+        listOfTags = textMetadataObj[currentWord][tagListType];
+        for (j=0;j<nameTagList.length;j++){
+            nameTag = nameTagList[j];
+            if (listOfTags.indexOf(nameTag) !== -1){
+                $(wordCloudList[i]).addClass(highlightClass);
+                break; // no need to continue with the j loop anymore
+            }
+        }
+    }
+    
+}
+
+function tagLines(textObj, taggedSentenceList, tagName, highlightClass){
+    // get all lines from displayed text
+    var lines = [];
+    var tagType = "";
+    var taggedSentence, line, lineSpans, spanIndex, wordObj, word, tag,
+        spanText, nameTagList;
+
+    if (["PERSON", "LOCATION"].indexOf(tagName) !== -1){
+        tagType = "NER";
+        nameTagList = [tagName];
+        console.log("Supplied tagName is a named entity.");
+    } else {
+        tagType = "POS";
         if (tagName === "noun"){
             console.log("Supplied tagName is a noun.");
             nameTagList = ["NN", // common noun, singular or mass 
-                           "NNP", // proper noun, singular
                            "NNS"];  // common noun, plural
         
+        } else if (tagName === "name") {
+            console.log("Supplied tagName is a proper noun.");
+            nameTagList = ["NNP"]; // proper noun, singular
         } else if (tagName === "verb") {
             console.log("Supplied tagName is a verb.");
             nameTagList = ["VB", // verb in base form
@@ -178,18 +243,26 @@ function tagText(textObj, textMetadataObj, tagName, highlightClass){
         } else {
             console.log("Supplied tagName is not recognizable.");
         }
-
-        if (spanText in textMetadataObj) {
-            var nameTag = textMetadataObj[spanText]["POS"];
-        } 
-        if (nameTagList.indexOf(nameTag) !== -1) {
-            console.log(nameTag);
-            $(this).addClass(highlightClass);
-        }
-
     }
 
-  });
+    for (i=0; i<taggedSentenceList.length; i++){
+        taggedSentence = taggedSentenceList[i];
+        line = textObj.find("#line"+i);
+        lineSpans = line.find("span");
+        if (lineSpans.length === taggedSentence.length){
+            for (j=0; j<taggedSentence.length;j++){
+                wordObj = taggedSentence[j];
+                word = Object.keys(wordObj)[0];
+                tag = wordObj[word][tagType];
+                if (nameTagList.indexOf(tag) !== -1){
+                    $(lineSpans[j]).addClass(highlightClass);
+                }
+            }
+        } else {
+            console.log(lineSpans);
+            console.log(taggedSentence);
+        }
+    }
 }
 
 // Function that takes all the lines in the transcript, removes stop
@@ -297,17 +370,16 @@ function makeWordList(lowerCaseLines,textMetadataObj,wordsToRemove) {
                                  'color: ' + wordCloudColor   + '; ' +
                                  'font-family: ' + fontFamily + '; ' +
                                  'font-weight: ' + fontWeight + '; ' +
+                                 'padding: 2px; border-radius: 4px;' +
                                  '">' +
-                     tagList[tagNum][0] + ' ' +
-                   '</text>';
+                     tagList[tagNum][0] + '</text>' + '  ' ;
       tagFreq.push(tagList[tagNum][1]);
   }
-  return tagspans;
+  return '<p>'+tagspans+'</p>';
 }
 
 function removeEmptyLines(textArray){
     var lastRow = textArray[textArray.length-1];
-    console.log(lastRow);
     if (textArray[textArray.length-1][0] != "") {
         return textArray;
     } else {
@@ -321,7 +393,6 @@ function generateTransGraph(transGraphContainer, rawCaptionArray,
     captionArray = removeEmptyLines(rawCaptionArray);
     d3.select(transGraphContainer).selectAll("svg").remove();
     var w = $(transGraphContainer).width();
-    console.log(captionArray[captionArray.length-1]);
     docLength = hmsToSec(captionArray[captionArray.length-1][0]);
     var h = $(transGraphContainer).height();
     var transSvg = d3.select(transGraphContainer).append("svg")
@@ -431,7 +502,6 @@ function generateTransGraph(transGraphContainer, rawCaptionArray,
       }
       graphData.push(d);
     }
-    console.log(graphData);
 
     var tip = d3.tip()
                 .attr('class', 'd3-tip')
@@ -505,7 +575,6 @@ function generateTransGraph(transGraphContainer, rawCaptionArray,
         var graphIndex = $(transGraphContainer+' svg')
                           .children('rect')
                           .index(this);
-        console.log(captionArray.length);
         var captionStartTimeMin = captionArray[graphIndex][0]
         captionStartTimeSec = hmsToSec(captionStartTimeMin);
         

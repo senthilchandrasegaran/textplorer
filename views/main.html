@@ -29,6 +29,7 @@
   <div id = "left">
 
     <div id="docAbstractions">
+
         <div id="transGraphTitle"
              class="header timeSequenceVizTitle">
           <p class="vizText">
@@ -41,6 +42,7 @@
           <div id="transGraphScrubber" class="timeSequenceVizScrubber">
           </div>
         </div>
+
         <div id="icGraphTitle"
              class="header timeSequenceVizTitle">
           <p class="vizText">
@@ -53,6 +55,20 @@
           <div id="icGraphScrubber" class="timeSequenceVizScrubber">
           </div>
         </div>
+
+        <div id="tagGraphTitle"
+             class="header timeSequenceVizTitle">
+          <p class="vizText">
+            Info
+          </p>
+        </div>
+        <div id="tagGraph" class="timeSequenceViz">
+          <div id="tagGraphContent" class="timeSequenceVizContent">
+          </div>
+          <div id="tagGraphScrubber" class="timeSequenceVizScrubber">
+          </div>
+        </div>
+
         <div id="protoColGraphTitle"
              class="header timeSequenceVizTitle">
           <div class="vizText">
@@ -98,38 +114,51 @@
                       <input type="checkbox" id="showPeople" />
                       <text class="people">People</text>
                     </label>
+                    [<span id="ppCount"></span>]
                   </td>
                   <td>
                     <label>
                       <input type="checkbox" id="showPlaces" />
                       <text class="places">Places</text>
                     </label>
+                    [<span id="plcCount"></span>]
                   </td>
                   <td>
                     <label>
-                      <input type="checkbox" id="showNouns" />
-                      <text class="nouns">Nouns</nouns>
+                      <input type="checkbox" id="showNames" />
+                      <text class="names">Names</names>
                     </label>
+                    [<span id="nameCount"></span>]
                   </td>
               </tr>
               <tr>
                   <td>
                     <label>
+                      <input type="checkbox" id="showNouns" />
+                      <text class="nouns">Nouns</nouns>
+                    </label>
+                    [<span id="nounCount"></span>]
+                  </td>
+                  <td>
+                    <label>
                       <input type="checkbox" id="showVerbs" />
                       <text class="verbs">Verbs</verbs>
                     </label>
+                    [<span id="verbCount"></span>]
                   </td>
                   <td>
                     <label>
                       <input type="checkbox" id="showAdjectives" />
                       <text class="adjectives">Adjectives</text>
                     </label>
+                    [<span id="adjCount"></span>]
                   </td>
                   <td>
                     <label>
                       <input type="checkbox" id="showAdverbs" />
                       <text class="adverbs">Adverbs</text>
                     </label>
+                    [<span id="advCount"></span>]
                   </td>
               </tr>
           </table>

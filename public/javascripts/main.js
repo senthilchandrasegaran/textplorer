@@ -80,6 +80,7 @@ var protocolGraphHeight = 0;
 // object to store information content, word frequency, named entities
 // etc.
 var textMetadata = {};
+var sentenceTags = [];
 // Options to control visualizations
 var highlightIC = true;   // control whether or not to highlight
                           // transcript based on information content.
@@ -314,18 +315,37 @@ window.onload = function () {
       for (var i in captionArray) {
         if ((captionArray[i].length > 1) &&
             (captionArray[i][0].toLowerCase() !== "start time")) {
-          var tempLine = captionArray[i][3];
-          var words = captionArray[i][3].split(wordSeparators);
+          var tempLine = captionArray[i][3].trim();
+          var splCharacters = ['!', '@', '#', '$', '%', '^', '&', '*',
+                               '(', ')', '[', ']', '{', '}', ';', ':',
+                               ',', '.', '/', '<', '>', '?', '|',
+                               '`', '~', '=', '_', '+', '-'];
+
+          var tempChars = tempLine.split("");
+          var tmpln = "";
+          var charToAdd;
+          for (var cind = 0; cind < tempChars.length; cind++) { 
+              if (splCharacters.indexOf(tempChars[cind]) !== -1){
+                charToAdd = " " + tempChars[cind] + " ";
+              } else {
+                charToAdd = tempChars[cind];
+              }
+              tmpln = tmpln + charToAdd;
+          }
+          tmpln = tmpln.trim();
+          //var words = tempLine.split(wordSeparators);
+          var words = tmpln.split(wordSeparators);
           if (words.length > longestLineLength) {
             longestLineLength = words.length;
           }
-          var lowerCaseWords = captionArray[i][3]
-                                 .toLowerCase()
-                                 .split(wordSeparators);
+          // var lowerCaseWords =
+          // tmpln.toLowerCase().split(wordSeparators);
+          var lowerCaseWords = tmpln.toLowerCase().split(" ");
           lowerCaseLines.push(lowerCaseWords);
           for (var k in words) {
-            tempspan += '<span id="line' + i + 'word' + k + '">' +
-                        words[k] + ' </span>';
+            tempspan += '<span id="line' + i + 'word' + k + '"' +
+                'style="padding: 2px; border-radius: 4px;">' +
+                        words[k] + '</span>';
             spanArray.push([i, k, words[k].toLowerCase()]);
           }
           var labelColor = "";
@@ -338,7 +358,6 @@ window.onload = function () {
           } else {
             labelColor = speakerColors[parseInt(captionArray[i][2]
                                                   .split("F")[1])-1];
-
           }
 
           displayLines.push(
@@ -1369,8 +1388,11 @@ window.onload = function () {
         url: "/infoContent",
         dataType: "text"
     }).done(function (data) {
-        var infoContentString = JSON.parse(data);
-        textMetadata = JSON.parse(infoContentString.data);
+        var infoString = JSON.parse(data);
+        textNLP = JSON.parse(infoString.data);
+        console.log(textNLP);
+        textMetadata = textNLP["metadata"];
+        sentenceTags = textNLP["sentencetags"];
         $('#showIC').prop('checked', true);
         textICVis($("#transContent"), textMetadata);
         $("#tagList").empty()
@@ -1378,6 +1400,35 @@ window.onload = function () {
         $("#tagList").append(makeWordList(lowerCaseLines,
                                           textMetadata,
                                           tagsToRemove));
+        
+        // Show 'counts' of tag near their checkboxes (inspired from
+        // scented widgets)
+        var peopleCount = getTagCounts(["PERSON"],"NER",sentenceTags);
+        $("#ppCount").text(peopleCount);
+
+        var plcCount = getTagCounts(["LOCATION"],"NER",sentenceTags);
+        $("#plcCount").text(plcCount);
+
+        var nameList = ["NNP"];
+        var nameCount = getTagCounts(nameList,"POS",sentenceTags);
+        $("#nameCount").text(nameCount);
+
+        var nounList = ["NN", "NNP", "NNS"];
+        var nounCount = getTagCounts(nounList,"POS",sentenceTags);
+        $("#nounCount").text(nounCount);
+
+        var verbList = ["VB","VBD","VBG","VBN","VBP","VPZ"];
+        var verbCount = getTagCounts(verbList, "POS", sentenceTags);
+        $("#verbCount").text(verbCount);
+
+        var adjList = ["JJ", "JJR", "JJS"];
+        var adjCount = getTagCounts(adjList, "POS", sentenceTags);
+        $("#adjCount").text(adjCount);
+
+        var advList = ["RB","RBR", "RBS"];
+        var advCount = getTagCounts(advList, "POS", sentenceTags);
+        $("#advCount").text(advCount);
+
         icGraphData = generateTransGraph(
                             "#icGraphContent", // transcript graph
                             captionArray, // array from text uploaded
@@ -1407,8 +1458,12 @@ window.onload = function () {
           $("#transContent").find("span").each(function() {
               $(this).removeClass("people");
           });
+          $("#tagList").find("text").each(function() {
+              $(this).removeClass("people");
+          });
       } else {
-        tagText($("#transContent"), textMetadata, "PERSON", "people");
+        tagLines($("#transContent"), sentenceTags, "PERSON", "people");
+        tagWordCloud($("#tagList"), textMetadata, "PERSON", "people");
       }
     });
 
@@ -1417,8 +1472,12 @@ window.onload = function () {
           $("#transContent").find("span").each(function() {
               $(this).removeClass("places");
           });
+          $("#tagList").find("text").each(function() {
+              $(this).removeClass("places");
+          });
       } else {
-        tagText($("#transContent"), textMetadata, "LOCATION", "places");
+        tagLines($("#transContent"), sentenceTags, "LOCATION", "places");
+        tagWordCloud($("#tagList"), textMetadata, "LOCATION", "places");
       }
     });
 
@@ -1427,8 +1486,26 @@ window.onload = function () {
           $("#transContent").find("span").each(function() {
               $(this).removeClass("nouns");
           });
+          $("#tagList").find("text").each(function() {
+              $(this).removeClass("nouns");
+          });
       } else {
-        tagText($("#transContent"), textMetadata, "noun", "nouns");
+        tagLines($("#transContent"), sentenceTags, "noun", "nouns");
+        tagWordCloud($("#tagList"), textMetadata, "noun", "nouns");
+      }
+    });
+
+    $('#showNames').change(function(){
+      if (!($(this).is(':checked'))) {
+          $("#transContent").find("span").each(function() {
+              $(this).removeClass("names");
+          });
+          $("#tagList").find("text").each(function() {
+              $(this).removeClass("names");
+          });
+      } else {
+        tagLines($("#transContent"), sentenceTags, "name", "names");
+        tagWordCloud($("#tagList"), textMetadata, "name", "names");
       }
     });
 
@@ -1437,8 +1514,12 @@ window.onload = function () {
           $("#transContent").find("span").each(function() {
               $(this).removeClass("verbs");
           });
+          $("#tagList").find("text").each(function() {
+              $(this).removeClass("verbs");
+          });
       } else {
-        tagText($("#transContent"), textMetadata, "verb", "verbs");
+        tagLines($("#transContent"), sentenceTags, "verb", "verbs");
+        tagWordCloud($("#tagList"), textMetadata, "verb", "verbs");
       }
     });
 
@@ -1447,8 +1528,12 @@ window.onload = function () {
           $("#transContent").find("span").each(function() {
               $(this).removeClass("adverbs");
           });
+          $("#tagList").find("text").each(function() {
+              $(this).removeClass("adverbs");
+          });
       } else {
-        tagText($("#transContent"), textMetadata, "adverb", "adverbs");
+        tagLines($("#transContent"), sentenceTags, "adverb", "adverbs");
+        tagWordCloud($("#tagList"), textMetadata, "adverb", "adverbs");
       }
     });
 
@@ -1457,8 +1542,13 @@ window.onload = function () {
           $("#transContent").find("span").each(function() {
               $(this).removeClass("adjectives");
           });
+          $("#tagList").find("text").each(function() {
+              $(this).removeClass("adjectives");
+          });
       } else {
-        tagText($("#transContent"), textMetadata, "adjective",
+        tagLines($("#transContent"), sentenceTags, "adjective",
+                "adjectives");
+        tagWordCloud($("#tagList"), textMetadata, "adjective",
                 "adjectives");
       }
     });
