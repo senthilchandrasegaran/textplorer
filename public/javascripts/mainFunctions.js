@@ -3,7 +3,7 @@
 //             Sriram Karthik Badam
 ///////////////////////////////////////////////////////////////
 
-// Extend the jquery "contains" selector to be case-insensitive. 
+// Extend the jquery "contains" selector to be case-insensitive.
 // to call this, use ":containsNC" instead of ":contains"
 $.extend($.expr[":"], {
   "containsNC": function(elem, i, match, array) {
@@ -19,7 +19,7 @@ $.extend($.expr[":"], {
 function returnSpans(selText){
   var spanArray = [];
   var spanLineArray = [];
-  var rangeObject = $(selText.getRangeAt(0)); 
+  var rangeObject = $(selText.getRangeAt(0));
   var startSpan = rangeObject.attr("startContainer").parentNode;
   var endSpan = rangeObject.attr("endContainer").parentNode;
   var startLine = startSpan.parentNode.parentNode; // table row
@@ -119,7 +119,7 @@ function textICVis(displayTextObj, textMetadataObj){
       textWeight = wtScale(normIC);
       textStyle = "regular";
       textColor = "#084594";
-    } 
+    }
     $(this).css({'color': textColor,
                  'font-style': textStyle,
                  'font-family': 'Roboto, sans-serif',
@@ -271,9 +271,11 @@ function tagLines(textObj, taggedSentenceList, tagName, highlightClass){
 // words removed from the tagList. When this is passed to the
 // function, it removes these words from the list of unique words.
 // NOTE: Use the wordsToRemove to populate a div for the user.
-function makeWordList(lowerCaseLines,textMetadataObj,wordsToRemove) {
+function makeWordList(listOfLowerCaseLines,textMetadataObj,wordsToRemove,isCompleteText) {
   var tagList = [];
   var wordObj = {};
+  var wordList = [];
+  wordList = wordList.concat.apply(wordList, listOfLowerCaseLines);
 
   if ($.isEmptyObject(textMetadataObj)) { 
     // i.e, if NO textMetadataObj is provided
@@ -284,9 +286,7 @@ function makeWordList(lowerCaseLines,textMetadataObj,wordsToRemove) {
     var punctuation = /[!&()*+,--\.\/:;<=>?\[\\\]^`\{|\}~]+/g;
     var discard = /^(@|https?:)/;
     var htmlTags = /(<[^>]*?>|<script.*?<\/script>|<style.*?<\/style>|<head.*?><\/head>)/g;
-    var wordList = [];
     var conceptList = [];
-    wordList = wordList.concat.apply(wordList, lowerCaseLines);
     
     // remove stop words and create an array of the remaining words called
     // "conceptlist"
@@ -310,8 +310,27 @@ function makeWordList(lowerCaseLines,textMetadataObj,wordsToRemove) {
     } // end wordObj creation (without metadata)
   
   } else { // if textMetadataObj is provided
-    for (word in textMetadataObj) {
-      wordObj[word] = textMetadataObj[word]["frequency"]
+    if (!isCompleteText) {
+      // if the provided text is the complete text and not a selection,
+      // then the textMetadata is not applicable anymore.
+      for (var i = 0; i < wordList.length; i++) {
+        if (wordList[i] in textMetadataObj){
+          // word is NOT a stopword
+          if (wordObj[wordList[i]]) {
+              wordObj[wordList[i]]++;
+          }
+          else {
+              wordObj[wordList[i]] = 1;
+          }
+        } // end stopword condition
+      }
+    
+    } else {
+      // the textMetadata is applicable, since the complete list is
+      // provided.
+      for (word in textMetadataObj) {
+        wordObj[word] = textMetadataObj[word]["frequency"]
+      }
     }
   } // end condition where textMetadataObj is provided
 
@@ -378,6 +397,79 @@ function makeWordList(lowerCaseLines,textMetadataObj,wordsToRemove) {
   return '<p>'+tagspans+'</p>';
 }
 
+
+function updateTagList(tagDivObj, inputHTML){
+    $(tagDivObj).empty();
+    $(tagDivObj).css("background-color", "#ffffff");
+    $(tagDivObj).append(inputHTML);
+    if ($('#showPeople').is(':checked')){
+      tagWordCloud($(tagDivObj), textMetadata, "PERSON", "people");
+    }
+    if ($('#showPlaces').is(':checked')){
+      tagWordCloud($(tagDivObj), textMetadata, "LOCATION", "places");
+    }
+    if ($('#showNames').is(':checked')){
+      tagWordCloud($(tagDivObj), textMetadata, "name", "names");
+    }
+    if ($('#showNouns').is(':checked')){
+      tagWordCloud($(tagDivObj), textMetadata, "noun", "nouns");
+    }
+    if ($('#showVerbs').is(':checked')){
+      tagWordCloud($(tagDivObj), textMetadata, "verb", "verbs");
+    }
+    if ($('#showAdjectives').is(':checked')){
+      tagWordCloud($(tagDivObj), textMetadata, "adjective",
+                   "adjectives");
+    }
+    if ($('#showAdverbs').is(':checked')){
+      tagWordCloud($(tagDivObj), textMetadata, "adverb", "adverbs");
+    }
+}
+
+// Function to generate a text concordance view in the form of an html
+// table
+function concordance(word) {
+    //take the captionArray and put in one string
+    var allCaptions = "";
+    var textWindow = 60;
+    captionArray.forEach(function (caption) {
+        allCaptions += caption[3] + " ";
+    });
+
+    //now search of the index (indices) of the word in the allCaptions
+    var indices = getIndicesOf(word, allCaptions, false);
+
+    //Array of the concordances
+    var concordances = "<table id='concTable' align='center'>";
+
+    for (var i = 0; i < indices.length; i++) {
+        var index = indices[i];
+        var left = index - textWindow < 0 ? 0 : index - textWindow;
+        var right = index+textWindow+word.length >allCaptions.length-1?
+                    allCaptions.length-1 : index + textWindow + 
+                    word.length;
+        var row = "<tr>" +
+                    "<td align='right'>" +
+                    allCaptions.substring(left, index - 1) +
+                    "</td>" +
+                    "<td width=10px></td>" +
+                    "<td align='center'><b>" +
+                    allCaptions.substring(index,
+                                          index+word.length) +
+                    " </b></td>" +
+                    "<td width=10px></td>" +
+                    "<td align='left'>" +
+                    allCaptions.substring(index + word.length,
+                                          right) +
+                    "</td>" +
+                  "</tr>"
+          concordances = concordances.concat(row);
+    }
+    concordances = concordances.concat("</table>");
+    return concordances;
+}
+
+
 function removeEmptyLines(textArray){
     var lastRow = textArray[textArray.length-1];
     if (textArray[textArray.length-1][0] != "") {
@@ -387,8 +479,7 @@ function removeEmptyLines(textArray){
     }
 }
 
-function generateTransGraph(transGraphContainer, rawCaptionArray,
-    speakerList, speakerDiff, lowerCaseLines, textMetadataObj, showIC) {
+function generateTransGraph(transGraphContainer, rawCaptionArray, speakerList, speakerDiff, listOfLowerCaseLines, textMetadataObj, showIC) {
     
     captionArray = removeEmptyLines(rawCaptionArray);
     d3.select(transGraphContainer).selectAll("svg").remove();
@@ -411,9 +502,9 @@ function generateTransGraph(transGraphContainer, rawCaptionArray,
 
     // to normalize the widths of the lines of text, need to find
     // the maximum length
-    for (i=0; i<lowerCaseLines.length;i++){
-      if (maxTranLine < lowerCaseLines[i].length){
-        maxTranLine = lowerCaseLines[i].length;
+    for (i=0; i<listOfLowerCaseLines.length;i++){
+      if (maxTranLine < listOfLowerCaseLines[i].length){
+        maxTranLine = listOfLowerCaseLines[i].length;
       }
     }
 
@@ -431,8 +522,8 @@ function generateTransGraph(transGraphContainer, rawCaptionArray,
       var icScale = d3.scale.linear()
                             .domain([0, highestInfoContent])
                             .range([0, 0.3]);
-      for (var sInd=0;sInd<lowerCaseLines.length;sInd++){
-        var wordsInLine = lowerCaseLines[sInd];
+      for (var sInd=0;sInd<listOfLowerCaseLines.length;sInd++){
+        var wordsInLine = listOfLowerCaseLines[sInd];
         var maxIC = 0;
         for (var wordInd=0;wordInd<wordsInLine.length;wordInd++){
           var tempIC = 0;
@@ -464,7 +555,7 @@ function generateTransGraph(transGraphContainer, rawCaptionArray,
       if (speakerDiff === 0){
         d.x = 0;
         d.fillColor = transGraphColor;
-        d.width = lowerCaseLines[i].length/maxTranLine * w;
+        d.width = listOfLowerCaseLines[i].length/maxTranLine * w;
         // d.width = w;
       } else {
         var speakerIndex = speakerList.indexOf(captionArray[i][2]);
@@ -577,7 +668,7 @@ function generateTransGraph(transGraphContainer, rawCaptionArray,
                           .index(this);
         var captionStartTimeMin = captionArray[graphIndex][0]
         captionStartTimeSec = hmsToSec(captionStartTimeMin);
-        
+
         // send log to server
         cTime =  new Date();
         var tempTime = cTime.getHours() + ":" +

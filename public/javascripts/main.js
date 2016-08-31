@@ -224,49 +224,6 @@ function getIndicesOf(searchStr, str, caseSensitive) {
 }
 
 
-// Function to generate a text concordance view in the form of an html
-// table
-function concordance(word) {
-    //take the captionArray and put in one string
-    var allCaptions = "";
-    var textWindow = 60;
-    captionArray.forEach(function (caption) {
-        allCaptions += caption[3] + " ";
-    });
-
-    //now search of the index (indices) of the word in the allCaptions
-    var indices = getIndicesOf(word, allCaptions, false);
-
-    //Array of the concordances
-    var concordances = "<table id='concTable' align='center'>";
-
-    for (var i = 0; i < indices.length; i++) {
-        var index = indices[i];
-        var left = index - textWindow < 0 ? 0 : index - textWindow;
-        var right = index+textWindow+word.length >allCaptions.length-1?
-                    allCaptions.length-1 : index + textWindow + 
-                    word.length;
-        var row = "<tr>" +
-                    "<td align='right'>" +
-                    allCaptions.substring(left, index - 1) +
-                    "</td>" +
-                    "<td width=10px></td>" +
-                    "<td align='center'><b>" +
-                    allCaptions.substring(index,
-                                          index+word.length-1) +
-                    " </b></td>" +
-                    "<td width=10px></td>" +
-                    "<td align='left'>" +
-                    allCaptions.substring(index + word.length-1,
-                                          right) +
-                    "</td>" +
-                  "</tr>"
-          concordances = concordances.concat(row);
-    }
-    concordances = concordances.concat("</table>");
-    return concordances;
-}
-
 // Function to handle tabs on protocol view div
 // this is called when document is loaded
 $(function(){
@@ -390,12 +347,9 @@ window.onload = function () {
                           textMetadata, // object with all ICs
                           false);  // whether or not to show IC
       // end representation of lines
-
-      $("#tagList").empty()
-      $("#tagList").css("background-color", "#ffffff");
-      $("#tagList").append(makeWordList(lowerCaseLines,
-                                        textMetadata,
-                                        tagsToRemove));
+      var tagListHTML = makeWordList(lowerCaseLines, textMetadata,
+                                     tagsToRemove, true);
+      updateTagList($("#tagList"), tagListHTML);
 
       // Remove tag on right click
       var tagListDOM = $('#tagList');
@@ -408,11 +362,9 @@ window.onload = function () {
           if (isRemoveTag == true) {
             var tagToRemove = $(this).text();
             tagsToRemove.push(tagToRemove);
-            $("#tagList").empty();
-            $("#tagList").css("background-color", "#ffffff");
-            $("#tagList").append(makeWordList(lowerCaseLines,
-                                              textMetadata,
-                                              tagsToRemove));
+            var tagListHTML = makeWordList(lowerCaseLines, textMetadata,
+                                           tagsToRemove, true);
+            updateTagList($("#tagList"), tagListHTML);
             // Finally remove all highlights from transcript
             $("#transTable").find("td").removeClass('hoverHighlight');
             $("#transTable").find("span").removeClass('boldText');
@@ -579,33 +531,6 @@ window.onload = function () {
       });
 
 
-      //----------------------------------------------------------
-      // Video seeking Code
-      //----------------------------------------------------------
-      var videoDuration = 0
-      // player.ready(function () {
-      $('#transTable').on('click', 'tr', function (e) {
-        if (e.ctrlKey || e.metaKey) {
-          e.preventDefault();
-          var captionIndex = this.rowIndex;
-          var captionStartTimeMin = captionArray[captionIndex][0];
-          captionStartTimeSec = hmsToSec(captionStartTimeMin);
-          // player.currentTime(captionStartTimeSec);
-          cTime =  new Date();
-          var tempTime = cTime.getHours() + ":" +
-                        cTime.getMinutes() + ":" +
-                        cTime.getSeconds();
-          clickLog.push([tempTime, "transcript",
-                        captionStartTimeSec + "\n"]);
-          sendClickData.data = clickLog;
-          $.post("/clicklog", sendClickData, function (data, error) {});
-        }
-      });
-      // });
-      //----------------------------------------------------------
-      // End of Video seeking Code
-      //----------------------------------------------------------
-
       //---------------------------------------------------------------
       // highlighting on mouseover for transcript
       //---------------------------------------------------------------
@@ -676,8 +601,8 @@ window.onload = function () {
               var start = $(this).get(0).selectionStart;
               $(this).val($(this).val().substring(0, start) + "\t" +
                 $(this).val().substring($(this).get(0).selectionEnd));
-              $(this).get(0).selectionStart = $(this).get(0).selectionEnd =
-                start + 1;
+              $(this).get(0).selectionStart = 
+                $(this).get(0).selectionEnd = start + 1;
               $(this).focus();
               return false;
           }
@@ -696,17 +621,9 @@ window.onload = function () {
           sendClickData.data = clickLog;
           $.post("/clicklog", sendClickData, function (data, error) { });
           if ($(this).hasClass('active')) {
-              var pArray = document
-            .getElementById('protocolTextArea')
-            .value
-            .split("\n");
-
-              function removeTabs(pString) {
-                  return pString.split("\t")[pString.split("\t").length - 1];
-              }
-
-              // deleted code for array splitting
-              // add new code that works, the old one didn't.
+              var pArray = document.getElementById('protocolTextArea')
+                                   .value
+                                   .split("\n");
 
               // display the tree with some D3 code
               d3.select("#protoView").selectAll("svg").remove();
@@ -720,9 +637,7 @@ window.onload = function () {
               var colorindex = -1;
               var tmp = -1;
 
-              //protocolList = [];
               protocolColorList = [];
-
 
               //KB edits --------
 
@@ -737,7 +652,6 @@ window.onload = function () {
               // note that this is a linear buffer but the hierarchy is encoded in level variable
 
               //read the protocols and levels into a list first
-
               var newProtocolList = [];
               var parentName = "#ISROOT#";
               for (var i = 0; i < pArray.length; i++) {
@@ -755,7 +669,8 @@ window.onload = function () {
                   parentName = protocolName;
               }
 
-              // check with the old protocolObject and change the protocolObject accordingly
+              // check with the old protocolObject and change the
+              // protocolObject accordingly
               var protocolKeyList = Object.keys(protocolObject);
               for (var j = 0; j < protocolKeyList.length; j++) {
                   protocolObject[protocolKeyList[j]].deleted = true;
@@ -1008,6 +923,13 @@ window.onload = function () {
           var sliceEnd = parseInt(endLineID.split("line")[1])+1;
           var linesList = lowerCaseLines.slice(sliceStart, sliceEnd);
           if (e.button !== 2) {
+            // check if the event is a selection event and not a context
+            // menu (right-click) event. The taglist is to be updated
+            // only in the case of a selection event.
+            var tagListHTML = makeWordList(linesList, textMetadata,
+                                           tagsToRemove, false);
+            updateTagList($("#tagList"), tagListHTML);
+
             cTime =  new Date();
             var tempTime = cTime.getHours() + ":" +
                           cTime.getMinutes() + ":" +
@@ -1015,21 +937,11 @@ window.onload = function () {
             clickLog.push([tempTime, "selectLinesInTranscript\n"]);
             sendClickData.data = clickLog;
             $.post("/clicklog", sendClickData, function (data, error) { });
-            // check if the event is a selection event and not a context
-            // menu (right-click) event. The taglist is to be updated
-            // only in the case of a selection event.
-            $("#tagList").empty();
-            $("#tagList").css("background-color", "#ffffff");
-            $("#tagList").append(makeWordList(linesList,
-                                              textMetadata,
-                                              tagsToRemove));
           }
         } else {
-          $("#tagList").empty();
-          $("#tagList").css("background-color", "#ffffff");
-          $("#tagList").append(makeWordList(lowerCaseLines,
-                                            textMetadata,
-                                            tagsToRemove));
+          var tagListHTML = makeWordList(lowerCaseLines, textMetadata,
+                                         tagsToRemove, true);
+          updateTagList($("#tagList"), tagListHTML);
         }
       });
       // code to assign protocol codes with selected text
@@ -1317,11 +1229,11 @@ window.onload = function () {
                       // mouseout events.
                       currentObj.clickStatus = 1;
                     }
-                    $("#tagList").empty();
-                    $("#tagList").css("background-color", "#ffffff");
-                    $("#tagList").append(makeWordList(lineCollection,
-                                                      textMetadata,
-                                                      tagsToRemove));
+                    var tagListHTML = makeWordList(lineCollection,
+                                                   textMetadata,
+                                                   tagsToRemove, false);
+                    updateTagList($("#tagList"), tagListHTML);
+
                     // set general click status as 1, so that this has
                     // to be disabled before another group of spans can
                     // be permanently highlighted.
@@ -1395,12 +1307,10 @@ window.onload = function () {
         sentenceTags = textNLP["sentencetags"];
         $('#showIC').prop('checked', true);
         textICVis($("#transContent"), textMetadata);
-        $("#tagList").empty()
-        $("#tagList").css("background-color", "#ffffff");
-        $("#tagList").append(makeWordList(lowerCaseLines,
-                                          textMetadata,
-                                          tagsToRemove));
-        
+        var tagListHTML = makeWordList(lowerCaseLines, textMetadata,
+                                       tagsToRemove, true);
+        updateTagList($("#tagList"), tagListHTML);
+
         // Show 'counts' of tag near their checkboxes (inspired from
         // scented widgets)
         var peopleCount = getTagCounts(["PERSON"],"NER",sentenceTags);
