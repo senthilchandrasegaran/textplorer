@@ -301,8 +301,8 @@ window.onload = function () {
           lowerCaseLines.push(lowerCaseWords);
           for (var k in words) {
             tempspan += '<span id="line' + i + 'word' + k + '"' +
-                'style="padding: 2px; border-radius: 4px;">' +
-                        words[k] + '</span>';
+                'style="padding: 0px; border-radius: 4px;">' +
+                        words[k] + '</span> ';
             spanArray.push([i, k, words[k].toLowerCase()]);
           }
           var labelColor = "";
@@ -326,8 +326,9 @@ window.onload = function () {
              'class="unselectable" id="speaker'+i+'">' +
               captionArray[i][2] +
              '</td>' +
-             '<td id="line'+ i + '">' +
-              tempspan + '</td></tr>')
+             '<td id="line' + i + '" ' +
+             'style="word-break: break-word; hyphens: auto;">' +
+              '<p>'+tempspan + '</p></td></tr>')
           tempspan = "";
         }
       }
@@ -1371,9 +1372,15 @@ window.onload = function () {
           $("#tagList").find("text").each(function() {
               $(this).removeClass("people");
           });
+          d3.select("#tagGraphContent").selectAll("svg").remove();
       } else {
         tagLines($("#transContent"), sentenceTags, "PERSON", "people");
         tagWordCloud($("#tagList"), textMetadata, "PERSON", "people");
+        generateWordGraph("#tagGraphContent", 
+                          captionArray,
+                          lowerCaseLines,
+                          sentenceTags,
+                          "PERSON");
       }
     });
 
@@ -1385,9 +1392,15 @@ window.onload = function () {
           $("#tagList").find("text").each(function() {
               $(this).removeClass("places");
           });
+          d3.select("#tagGraphContent").selectAll("svg").remove();
       } else {
         tagLines($("#transContent"), sentenceTags, "LOCATION", "places");
         tagWordCloud($("#tagList"), textMetadata, "LOCATION", "places");
+        generateWordGraph("#tagGraphContent", 
+                          captionArray,
+                          lowerCaseLines,
+                          sentenceTags,
+                          "LOCATION");
       }
     });
 
@@ -1399,9 +1412,15 @@ window.onload = function () {
           $("#tagList").find("text").each(function() {
               $(this).removeClass("nouns");
           });
+          d3.select("#tagGraphContent").selectAll("svg").remove();
       } else {
         tagLines($("#transContent"), sentenceTags, "noun", "nouns");
         tagWordCloud($("#tagList"), textMetadata, "noun", "nouns");
+        generateWordGraph("#tagGraphContent", 
+                          captionArray,
+                          lowerCaseLines,
+                          sentenceTags,
+                          "noun");
       }
     });
 
@@ -1413,9 +1432,15 @@ window.onload = function () {
           $("#tagList").find("text").each(function() {
               $(this).removeClass("names");
           });
+          d3.select("#tagGraphContent").selectAll("svg").remove();
       } else {
         tagLines($("#transContent"), sentenceTags, "name", "names");
         tagWordCloud($("#tagList"), textMetadata, "name", "names");
+        generateWordGraph("#tagGraphContent", 
+                          captionArray,
+                          lowerCaseLines,
+                          sentenceTags,
+                          "name");
       }
     });
 
@@ -1427,9 +1452,15 @@ window.onload = function () {
           $("#tagList").find("text").each(function() {
               $(this).removeClass("verbs");
           });
+          d3.select("#tagGraphContent").selectAll("svg").remove();
       } else {
         tagLines($("#transContent"), sentenceTags, "verb", "verbs");
         tagWordCloud($("#tagList"), textMetadata, "verb", "verbs");
+        generateWordGraph("#tagGraphContent", 
+                          captionArray,
+                          lowerCaseLines,
+                          sentenceTags,
+                          "verb");
       }
     });
 
@@ -1441,9 +1472,15 @@ window.onload = function () {
           $("#tagList").find("text").each(function() {
               $(this).removeClass("adverbs");
           });
+          d3.select("#tagGraphContent").selectAll("svg").remove();
       } else {
         tagLines($("#transContent"), sentenceTags, "adverb", "adverbs");
         tagWordCloud($("#tagList"), textMetadata, "adverb", "adverbs");
+        generateWordGraph("#tagGraphContent", 
+                          captionArray,
+                          lowerCaseLines,
+                          sentenceTags,
+                          "adverb");
       }
     });
 
@@ -1455,11 +1492,17 @@ window.onload = function () {
           $("#tagList").find("text").each(function() {
               $(this).removeClass("adjectives");
           });
+          d3.select("#tagGraphContent").selectAll("svg").remove();
       } else {
         tagLines($("#transContent"), sentenceTags, "adjective",
                 "adjectives");
         tagWordCloud($("#tagList"), textMetadata, "adjective",
                 "adjectives");
+        generateWordGraph("#tagGraphContent", 
+                          captionArray,
+                          lowerCaseLines,
+                          sentenceTags,
+                          "adjective");
       }
     });
 

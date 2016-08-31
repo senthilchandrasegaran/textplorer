@@ -236,48 +236,56 @@ input[type=checkbox]{
 
 .people{
     background-color: #fbb4ae;
+    border-color: #fbb4ae;
     padding: 2px;
     border-radius: 4px;
 }
 
 .places{
     background-color: #b3cde3;
+    border-color: #b3cde3;
     padding: 2px;
     border-radius: 4px;
 }
 
 .orgs{
     background-color: #ccebc5;
+    border-color: #ccebc5;
     padding: 2px;
     border-radius: 4px;
 }
 
 .nouns{
     background-color: #decbe4;
+    border-color: #decbe4;
     padding: 2px;
     border-radius: 4px;
 }
 
 .names{
     background-color: #b3de69;
+    border-color: #b3de69;
     padding: 2px;
     border-radius: 4px;
 }
 
 .verbs{
     background-color: #ffffcc;
+    border-color: #ffffcc;
     padding: 2px;
     border-radius: 4px;
 }
 
 .adjectives{
     background-color: #e5d8bd;
+    border-color: #e5d8bd;
     padding: 2px;
     border-radius: 4px;
 }
 
 .adverbs{
     background-color: #fddaec;
+    border-color: #fddaec;
     padding: 2px;
     border-radius: 4px;
 }

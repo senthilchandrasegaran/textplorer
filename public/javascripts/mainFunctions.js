@@ -702,3 +702,205 @@ function generateTransGraph(transGraphContainer, rawCaptionArray, speakerList, s
     return graphData;
 }
 
+function generateWordGraph(transGraphContainer, rawCaptionArray, listOfLowerCaseLines, taggedSentences, tagLabel) {
+    
+    var tagType, nameTagList, classColor;
+    if (["PERSON", "LOCATION"].indexOf(tagLabel) !== -1){
+        tagType = "NER";
+        nameTagList = [tagLabel];
+        if (tagLabel === "PERSON"){
+            classColor = $("#showPeople").siblings()
+                                         .css("background-color");
+        } else if (tagLabel === "LOCATION"){
+            classColor = $("#showPlaces").siblings()
+                                         .css("background-color");
+        }
+    } else {
+        tagType = "POS";
+        if (tagLabel === "noun"){
+            nameTagList = ["NN", // common noun, singular or mass 
+                           "NNS"];  // common noun, plural
+            classColor = $("#showNouns").siblings()
+                                         .css("background-color");
+        
+        } else if (tagLabel === "name") {
+            nameTagList = ["NNP"]; // proper noun, singular
+            classColor = $("#showNames").siblings()
+                                        .css("background-color");
+        } else if (tagLabel === "verb") {
+            nameTagList = ["VB", // verb in base form
+                           "VBD", // verb, past tense
+                           "VBG", // verb, present participle or gerund
+                           "VBN", // verb, past participle
+                           "VBP", // verb, prs.tense, not 3rd p.singular
+                           "VPZ"]; // verb, present tense, 3rd p.singular
+            classColor = $("#showVerbs").siblings()
+                                        .css("background-color");
+        } else if (tagLabel === "adjective") {
+            nameTagList = ["JJ", // adjective or numeral, ordinal
+                           "JJR", // comparative adjective
+                           "JJS"]; // superlative adjective
+            classColor = $("#showAdjectives").siblings()
+                                             .css("background-color");
+        } else if (tagLabel === "adverb"){
+            nameTagList = ["RB", //adverb
+                           "RBR", // comparative adverb
+                           "RBS"]; // superlative adverb
+            classColor = $("#showAdverbs").siblings()
+                                          .css("background-color");
+        } else {
+            console.log("Supplied tagLabel is not recognizable.");
+        }
+    }
+    console.log(classColor);
+
+    captionArray = removeEmptyLines(rawCaptionArray);
+    d3.select(transGraphContainer).selectAll("svg").remove();
+    var w = $(transGraphContainer).width();
+    docLength = hmsToSec(captionArray[captionArray.length-1][0]);
+    var h = $(transGraphContainer).height();
+    var transSvg = d3.select(transGraphContainer).append("svg")
+                     .attr("width", w)
+                     .attr("height", h);
+    var transcriptScale = d3.scale.linear()
+                            .domain([0, docLength])
+                            .range([0, h]);
+    var transScaleX = d3.scale.linear()
+                              .domain([0, speakerList.length])
+                              .range([0, w]);
+    var transGraphPadding = 0;
+    var scaleHeights = 0;
+    var constantHeight = 0;
+    var maxTranLine = 0
+
+    // to normalize the widths of the lines of text, need to find
+    // the maximum length
+    for (i=0; i<listOfLowerCaseLines.length;i++){
+      if (maxTranLine < listOfLowerCaseLines[i].length){
+        maxTranLine = listOfLowerCaseLines[i].length;
+      }
+    }
+
+    // create and store data object for visualization
+    var graphData = [];
+    for (var i=0; i < captionArray.length; i++){
+      var ySec = hmsToSec(captionArray[i][0]);
+      var yloc = transcriptScale(ySec);
+      for (var j=0; j<taggedSentences[i].length;j++){
+        var d = {};
+        var wPos = j/taggedSentences[i].length * w;
+        d.timeStamp = ySec;
+        d.y = yloc;
+        d.lineInd = i;
+        // d.speaker = captionArray[i][2];
+        // d.x = wPos;
+        d.x = 0;
+        var dWord = Object.keys(taggedSentences[i][j])[0];
+        d.text = dWord;
+        var label = taggedSentences[i][j][dWord][tagType];
+        if (nameTagList.indexOf(label) === -1){
+          d.fillColor = "rgba(255, 255, 255)";
+          d.fillOpacity = 0;
+          // d.height = 5;
+        } else {
+          d.fillColor = classColor;
+          d.fillOpacity = 0.5;
+          d.height = 5;
+        }
+        // d.width = w/taggedSentences[i].length;
+        d.width = w;
+        /*
+        if (constantHeight !== 0){
+          d.height = 1;
+        } else {
+          var endSec = hmsToSec(captionArray[i][1]);
+          d.endTime = endSec;
+          var startSec = hmsToSec(captionArray[i][0]);
+          var scaledHeight = transcriptScale(endSec - startSec);
+          if (scaledHeight < 1){
+            d.height = 1;
+          } else {
+            d.height = scaledHeight;
+          };
+        }*/
+        if (d.fillColor === classColor){
+          graphData.push(d);
+        }
+      }
+    }
+    console.log(graphData);
+
+    var tip = d3.tip()
+                .attr('class', 'd3-tip')
+                .offset([0, 10])
+                .direction('e');
+    transSvg.call(tip);
+    var rects = transSvg.selectAll("rect")
+             .data(graphData).enter()
+             .append("rect")
+             .attr("x", function (d) { return d.x; })
+             .attr("y", function (d) { return d.y; })
+             .attr("width", function (d) { return d.width; })
+             .attr("z", 1)
+             .attr("height", function (d) { return d.height; })
+             .attr("fill", function (d) {return d.fillColor;})
+             .attr("fill-opacity", function (d) {return d.fillOpacity;})
+             .on("mouseover", function(d){
+               tip.html(d.text).show();
+               // d3.select(this).attr("height", 5);
+               if (prevClickedTag === ""){
+                 d3.select(this).attr('fill', greenHighlight);
+               }
+               d3.select(this).attr('z', 50);
+               $("#transTable tr").eq(d.lineInd).children().last()
+                                  .addClass("hoverHighlight");
+             })
+             .on("mouseout", function(d){
+               tip.hide();
+               // d3.select(this).attr("height", d.height);
+               if (prevClickedTag === ""){
+                 d3.select(this).attr('fill', d.fillColor);
+               }
+               d3.select(this).attr('z', 1);
+               $("#transTable").find("td").removeClass("hoverHighlight");
+             })
+             .on("click", function(d){
+               if (d.lineInd > 10){
+                 scrollIndex = d.lineInd-10;
+               } else {
+                 scrollIndex = 0;
+               }
+               var transScrollItem = $('#transTable tr')
+                                         .eq(scrollIndex)
+                                         .children().last();
+               $('#transContent').scrollTo($(transScrollItem),
+                                           {duration: 'slow',
+                                           transition: 'ease-in-out'});
+              
+             });
+
+    /*
+    var fisheye = d3.fisheye.circular().radius(100);
+    transSvg.on('mousemove', function(){
+        // implementing fisheye distortion
+        fisheye.focus(d3.mouse(this));
+        rects.each(function(d) { d.fisheye = fisheye(d); })
+             .attr("y", function(d) { return d.fisheye.y; })
+             .attr("x", function(d) { return d.fisheye.x; })
+             .attr("width", function(d) {
+                return d.width * d.fisheye.z;
+             })
+             .attr("height", function(d) { 
+               return d.fisheye.z; 
+             });
+    });
+    transSvg.on('mouseleave', function(){
+        rects.each()
+             .attr("y", d.y)
+             .attr("x", d.x)
+             .attr("height", d.height);
+    });
+    */
+    return graphData;
+}
+
