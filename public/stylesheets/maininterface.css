@@ -249,7 +249,7 @@ input[type=checkbox]{
 }
 
 .orgs{
-    background-color: #ccebc5;
+    background-color: #ffffcc;
     border-color: #ccebc5;
     padding: 2px;
     border-radius: 4px;
@@ -270,15 +270,15 @@ input[type=checkbox]{
 }
 
 .verbs{
-    background-color: #ffffcc;
+    background-color: #ccebc5;
     border-color: #ffffcc;
     padding: 2px;
     border-radius: 4px;
 }
 
 .adjectives{
-    background-color: #e5d8bd;
-    border-color: #e5d8bd;
+    background-color: #ffed6f;
+    border-color: #ffed6f;
     padding: 2px;
     border-radius: 4px;
 }
@@ -299,7 +299,8 @@ input[type=checkbox]{
 */
 
 .transRectHighLight{
-  fill: rgba(220, 138, 12, 0.3);
+  fill: rgb(220, 138, 12);
+  fill-opacity: 0.3;
   width: 100%;
   height: 5px;
 }
@@ -402,7 +403,7 @@ input[type=checkbox]{
   display: inline-block;
   vertical-align: top;
   height: 99%;
-  width: 20%;
+  width: 19%;
   overflow: hidden;
   border: 1px solid #c9c9c9;
 }

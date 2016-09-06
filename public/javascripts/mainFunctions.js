@@ -20,13 +20,16 @@ function returnSpans(selText){
   var spanArray = [];
   var spanLineArray = [];
   var rangeObject = $(selText.getRangeAt(0));
-  var startSpan = rangeObject.attr("startContainer").parentNode;
-  var endSpan = rangeObject.attr("endContainer").parentNode;
+  // var startSpan = rangeObject.attr("startContainer").parentNode;
+  // var endSpan = rangeObject.attr("endContainer").parentNode;
+  var startSpan = rangeObject.attr("startContainer");
+  var endSpan = rangeObject.attr("endContainer");
   var startLine = startSpan.parentNode.parentNode; // table row
   var endLine = endSpan.parentNode.parentNode;
   // collect all parent items in an array
   var linesList = [];
   var currentSpan = startSpan;
+  console.log(rangeObject);
   var currentLine = startLine;
   if (currentSpan != null){
     do {
@@ -101,9 +104,10 @@ function textICVis(displayTextObj, textMetadataObj){
   // weights, e.g. Roboto
   var wtScale = d3.scale.quantize()
                   .domain([0,1])
-                  .range([300, 500, 700, 900]);
+                  .range([300, 400, 500, 900]);
 
   // update text weights based on information content.
+  var collectIC = {300 : [], 400 : [], 500 : [], 900 :[]};
   allSpans.each(function() {
     var textWeight, textColor, textStyle, spanText, spanTextLow;
     textWeight = 300
@@ -117,6 +121,7 @@ function textICVis(displayTextObj, textMetadataObj){
       var normIC = textMetadataObj[spanText]["infoContent"]/
                    highestInfoContent;
       textWeight = wtScale(normIC);
+      collectIC[textWeight].push(spanText);
       textStyle = "regular";
       textColor = "#084594";
     }
@@ -125,6 +130,7 @@ function textICVis(displayTextObj, textMetadataObj){
                  'font-family': 'Roboto, sans-serif',
                  'font-weight': textWeight});
   });
+  console.log(collectIC);
 }
 
 function getTagCounts(lookupTags, tagKey, sentenceTags){
@@ -360,11 +366,11 @@ function makeWordList(listOfLowerCaseLines,textMetadataObj,wordsToRemove,isCompl
   var tagFreq = [];
   var fontScale = d3.scale.log()
                     .domain([maxfreq, 1])
-                    .range([40, 12]);
+                    .range([40, 14]);
   var fontFamily = "Roboto, sans-serif";
   var fontWeightScale = d3.scale.quantize()
                           .domain([0,1])
-                          .range([300, 500, 700, 900]);
+                          .range([300, 400, 500, 900]);
 
 
   var highestInfoContent = 0;
@@ -519,7 +525,7 @@ function generateTransGraph(transGraphContainer, rawCaptionArray, speakerList, s
           highestInfoContent = wordic;
         }
       }
-      var icScale = d3.scale.linear()
+      var icScale = d3.scale.pow(2)
                             .domain([0, highestInfoContent])
                             .range([0, 0.3]);
       for (var sInd=0;sInd<listOfLowerCaseLines.length;sInd++){
@@ -580,8 +586,8 @@ function generateTransGraph(transGraphContainer, rawCaptionArray, speakerList, s
         d.endTime = endSec;
         var startSec = hmsToSec(captionArray[i][0]);
         var scaledHeight = transcriptScale(endSec - startSec);
-        if (scaledHeight < 2){
-          d.height = 2;
+        if (scaledHeight < 1){
+          d.height = 1;
         } else {
           d.height = scaledHeight;
         };
@@ -609,7 +615,7 @@ function generateTransGraph(transGraphContainer, rawCaptionArray, speakerList, s
              .attr("height", function (d) { return d.height; })
              .attr("fill", d.fillColor)
              .on("mouseover", function(d, i){
-               tip.html("<font size=2 color='"+d.fillColor+ "'>"+
+               tip.html("<font size=2 color='#fff'>"+
                    d.speaker+":  </font>"+d.dialog).show();
                // d3.select(this).attr("height", 5);
                if (prevClickedTag === ""){
@@ -639,13 +645,14 @@ function generateTransGraph(transGraphContainer, rawCaptionArray, speakerList, s
                 return d.width * d.fisheye.z;
              })
              .attr("height", function(d) { 
-               return d.fisheye.z; 
+               return d.height * d.fisheye.z; 
              });
     });
     transSvg.on('mouseleave', function(){
-        rects.each()
-             .attr("y", d.y)
-             .attr("height", d.height);
+        rects.each(function(d){d.fisheye = fisheye(d);})
+             .attr("y", function(d){return d.y;})
+             .attr("width", function(d){return d.width;})
+             .attr("height", function(d){return d.height;});
     });
 
     d3.select(transGraphContainer)
@@ -755,7 +762,7 @@ function generateWordGraph(transGraphContainer, rawCaptionArray, listOfLowerCase
     console.log(classColor);
 
     captionArray = removeEmptyLines(rawCaptionArray);
-    d3.select(transGraphContainer).selectAll("svg").remove();
+    // d3.select(transGraphContainer).selectAll("svg").remove();
     var w = $(transGraphContainer).width();
     docLength = hmsToSec(captionArray[captionArray.length-1][0]);
     var h = $(transGraphContainer).height();
@@ -794,7 +801,8 @@ function generateWordGraph(transGraphContainer, rawCaptionArray, listOfLowerCase
         d.lineInd = i;
         // d.speaker = captionArray[i][2];
         // d.x = wPos;
-        d.x = 0;
+        // d.x = 0;
+        d.x = wPos;
         var dWord = Object.keys(taggedSentences[i][j])[0];
         d.text = dWord;
         var label = taggedSentences[i][j][dWord][tagType];
@@ -804,11 +812,12 @@ function generateWordGraph(transGraphContainer, rawCaptionArray, listOfLowerCase
           // d.height = 5;
         } else {
           d.fillColor = classColor;
-          d.fillOpacity = 0.5;
-          d.height = 5;
+          d.fillOpacity = 0.8;
+          d.height = 2;
         }
+        d.width = 1/taggedSentences[i].length * w;
         // d.width = w/taggedSentences[i].length;
-        d.width = w;
+        // d.width = w;
         /*
         if (constantHeight !== 0){
           d.height = 1;
@@ -879,28 +888,197 @@ function generateWordGraph(transGraphContainer, rawCaptionArray, listOfLowerCase
               
              });
 
-    /*
     var fisheye = d3.fisheye.circular().radius(100);
     transSvg.on('mousemove', function(){
         // implementing fisheye distortion
         fisheye.focus(d3.mouse(this));
         rects.each(function(d) { d.fisheye = fisheye(d); })
-             .attr("y", function(d) { return d.fisheye.y; })
              .attr("x", function(d) { return d.fisheye.x; })
+             .attr("y", function(d) { return d.fisheye.y; })
              .attr("width", function(d) {
                 return d.width * d.fisheye.z;
              })
              .attr("height", function(d) { 
-               return d.fisheye.z; 
+               return d.height * d.fisheye.z; 
              });
     });
     transSvg.on('mouseleave', function(){
-        rects.each()
-             .attr("y", d.y)
-             .attr("x", d.x)
-             .attr("height", d.height);
+        rects.each(function(d){d.fisheye = fisheye(d);})
+             .attr("x", function(d){return d.x;})
+             .attr("y", function(d){return d.y;})
+             .attr("width", function(d){return d.width;})
+             .attr("height", function(d){return d.height;});
     });
-    */
+    
     return graphData;
 }
 
+function generateICGraph(transGraphContainer, rawCaptionArray, listOfLowerCaseLines, taggedSentences, textMetadataObj) {
+
+    // Identify max information content
+    var highestInfoContent = 0;
+    for (word in textMetadataObj) {
+      wordic = textMetadataObj[word]["infoContent"];
+      if (wordic > highestInfoContent) {
+        highestInfoContent = wordic;
+      }
+    }
+
+    var wtScale = d3.scale.quantize()
+                    .domain([0,1])
+                    .range([0.05, 0.1, 0.2, 0.9]);
+
+
+    captionArray = removeEmptyLines(rawCaptionArray);
+    // d3.select(transGraphContainer).selectAll("svg").remove();
+    var w = $(transGraphContainer).width();
+    docLength = hmsToSec(captionArray[captionArray.length-1][0]);
+    var h = $(transGraphContainer).height();
+    var transSvg = d3.select(transGraphContainer).append("svg")
+                     .attr("width", w)
+                     .attr("height", h);
+    var transcriptScale = d3.scale.linear()
+                            .domain([0, docLength])
+                            .range([0, h]);
+    var transGraphPadding = 0;
+    var scaleHeights = 0;
+    var constantHeight = 0;
+    var maxTranLine = 0
+
+    // to normalize the widths of the lines of text, need to find
+    // the maximum length
+    /*
+    for (i=0; i<listOfLowerCaseLines.length;i++){
+      if (maxTranLine < listOfLowerCaseLines[i].length){
+        maxTranLine = listOfLowerCaseLines[i].length;
+      }
+    }
+    */
+
+    for (i=0; i<taggedSentences.length;i++){
+      if (maxTranLine < taggedSentences[i].length){
+        maxTranLine = taggedSentences[i].length;
+      }
+    }
+
+    // create and store data object for visualization
+    var graphData = [];
+    var graphColor, graphOpacity;
+    for (var i=0; i < captionArray.length; i++){
+      var ySec = hmsToSec(captionArray[i][0]);
+      var yloc = transcriptScale(ySec);
+      for (var j=0; j<taggedSentences[i].length;j++){
+        var d = {};
+        var wPos = j/taggedSentences[i].length * w;
+        // var wPos = j/maxTranLine * w;
+        d.timeStamp = ySec;
+        d.y = yloc;
+        d.lineInd = i;
+        // d.speaker = captionArray[i][2];
+        // d.x = wPos;
+        // d.x = 0;
+        d.x = wPos;
+        var dWord = Object.keys(taggedSentences[i][j])[0];
+
+        // color each word according to information content (grey if no
+        // IC is found)
+        graphColor = "#777";
+        graphOpacity = 0.1;
+        dWord = dWord.trim().toLowerCase();
+        dWordFiltered = dWord.replace(/[^a-zA-Z0-9\-]/g, "");
+        if (dWordFiltered in textMetadataObj) {
+          // normalize information content value of text for optimal
+          // weight scaling
+          var normIC = textMetadataObj[dWordFiltered]["infoContent"]/
+                       highestInfoContent;
+          graphOpacity = wtScale(normIC);
+          graphColor = "#084594";
+        }
+
+        d.text = dWord;
+        d.rowIndex = i;
+        d.fillColor = graphColor;
+        d.fillOpacity = graphOpacity;
+        d.height = 2;
+        // d.width = w/maxTranLine;
+        d.width = w/taggedSentences[i].length;
+        if (d.fillColor !== "#777"){
+          graphData.push(d);
+        }
+      }
+    }
+
+    var tip = d3.tip()
+                .attr('class', 'd3-tip')
+                .offset([0, 10])
+                .direction('e');
+    transSvg.call(tip);
+    var rects = transSvg.selectAll("rect")
+             .data(graphData).enter()
+             .append("rect")
+             .attr("x", function (d) { return d.x; })
+             .attr("y", function (d) { return d.y; })
+             .attr("width", function (d) { return d.width; })
+             .attr("z", 1)
+             .attr("rowIndex", function(d){return d.rowIndex;})
+             .attr("height", function (d) { return d.height; })
+             .attr("fill", function (d) {return d.fillColor;})
+             .attr("fill-opacity", function (d) {return d.fillOpacity;})
+             .on("mouseover", function(d){
+               tip.html(d.text).show();
+               // d3.select(this).attr("height", 5);
+               if (prevClickedTag === ""){
+                 d3.select(this).attr('fill', greenHighlight);
+               }
+               d3.select(this).attr('z', 50);
+               $("#transTable tr").eq(d.lineInd).children().last()
+                                  .addClass("hoverHighlight");
+             })
+             .on("mouseout", function(d){
+               tip.hide();
+               // d3.select(this).attr("height", d.height);
+               if (prevClickedTag === ""){
+                 d3.select(this).attr('fill', d.fillColor);
+               }
+               d3.select(this).attr('z', 1);
+               $("#transTable").find("td").removeClass("hoverHighlight");
+             })
+             .on("click", function(d){
+               if (d.lineInd > 10){
+                 scrollIndex = d.lineInd-10;
+               } else {
+                 scrollIndex = 0;
+               }
+               var transScrollItem = $('#transTable tr')
+                                         .eq(scrollIndex)
+                                         .children().last();
+               $('#transContent').scrollTo($(transScrollItem),
+                                           {duration: 'slow',
+                                           transition: 'ease-in-out'});
+              
+             });
+
+    var fisheye = d3.fisheye.circular().radius(100);
+    transSvg.on('mousemove', function(){
+        // implementing fisheye distortion
+        fisheye.focus(d3.mouse(this));
+        rects.each(function(d) { d.fisheye = fisheye(d); })
+             .attr("x", function(d) { return d.fisheye.x; })
+             .attr("y", function(d) { return d.fisheye.y; })
+             .attr("width", function(d) {
+                return d.width * d.fisheye.z;
+             })
+             .attr("height", function(d) { 
+               return d.height * d.fisheye.z; 
+             });
+    });
+    transSvg.on('mouseleave', function(){
+        rects.each(function(d){d.fisheye = fisheye(d);})
+             .attr("x", function(d){return d.x;})
+             .attr("y", function(d){return d.y;})
+             .attr("width", function(d){return d.width;})
+             .attr("height", function(d){return d.height;});
+    });
+
+    return graphData;
+}

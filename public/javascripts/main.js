@@ -247,6 +247,12 @@ $(function(){
 window.onload = function () {
     transGraphWidth = $("#transGraph").width();
     icGraphWidth = $("#icGraph").width();
+    tagGraphWidth = $("#tagGraph").width();
+
+    // load the annotator library, and link it to the transcript div
+    jQuery(function ($) {
+      $('#transContent').annotator();
+    });
 
     /**************************************
      * TO ADD NEW DATASET
@@ -328,7 +334,7 @@ window.onload = function () {
              '</td>' +
              '<td id="line' + i + '" ' +
              'style="word-break: break-word; hyphens: auto;">' +
-              '<p>'+tempspan + '</p></td></tr>')
+              tempspan + '</td></tr>')
           tempspan = "";
         }
       }
@@ -546,10 +552,18 @@ window.onload = function () {
           var hiRects = $("#transGraphContent svg").children('rect');
           d3.select(hiRects[idIndex])
             .classed("transRectHighLight", true);
-          var icRects = $("#icGraphContent svg").children('rect');
-          d3.select(icRects[idIndex])
-            .classed("transRectHighLight", true);
-          // .attr("fill", mildHighlightColor);
+          d3.select("#icGraphContent").selectAll('rect')
+            .each(function(d){
+              if (d.rowIndex === idIndex){
+                d3.select(this).classed("transRectHighLight", true);
+              }
+            });
+          d3.select("#tagGraphContent").selectAll('rect')
+            .each(function(d){
+              if (d.lineInd === idIndex){
+                d3.select(this).classed("transRectHighLight", true);
+              }
+            });
           var timeSegArray = [];
           //load corresponding times of highlighted li items in a list
           var ind = 0;
@@ -569,6 +583,8 @@ window.onload = function () {
             .classed("transRectHighLight", false);
           d3.select("#icGraphContent svg").selectAll("rect")
             .classed("transRectHighLight", false);
+          d3.select("#tagGraphContent svg").selectAll("rect")
+            .classed("transRectHighLight", false);
       });
 
       //---------------------------------------------------------------
@@ -580,6 +596,8 @@ window.onload = function () {
           "Graphical View of Transcript", transGraphWidth);
       toggleMinMax("icGraphTitle", "icGraph",
           "Graphical View of Information Content", icGraphWidth);
+      toggleMinMax("tagGraphTitle", "icGraph",
+          "Graphical View of Tags", tagGraphWidth);
 
       /* TO ADD NEW DATASET
        * Make a copy of the below line of code,
@@ -1340,6 +1358,7 @@ window.onload = function () {
         var advCount = getTagCounts(advList, "POS", sentenceTags);
         $("#advCount").text(advCount);
 
+        /*
         icGraphData = generateTransGraph(
                             "#icGraphContent", // transcript graph
                             captionArray, // array from text uploaded
@@ -1349,6 +1368,12 @@ window.onload = function () {
                             textMetadata, // object with all ICs
                             true // whether or not to show IC
                       );
+        */
+        icGraphData = generateICGraph("#icGraphContent", 
+                                      captionArray,
+                                      lowerCaseLines,
+                                      sentenceTags,
+                                      textMetadata);
     });
 
 
