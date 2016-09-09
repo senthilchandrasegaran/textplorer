@@ -759,14 +759,14 @@ function generateWordGraph(transGraphContainer, rawCaptionArray, listOfLowerCase
             console.log("Supplied tagLabel is not recognizable.");
         }
     }
-    console.log(classColor);
 
     captionArray = removeEmptyLines(rawCaptionArray);
     // d3.select(transGraphContainer).selectAll("svg").remove();
     var w = $(transGraphContainer).width();
     docLength = hmsToSec(captionArray[captionArray.length-1][0]);
     var h = $(transGraphContainer).height();
-    var transSvg = d3.select(transGraphContainer).append("svg")
+    var tagSvg = d3.select(transGraphContainer)
+                     .append("svg")
                      .attr("width", w)
                      .attr("height", h);
     var transcriptScale = d3.scale.linear()
@@ -797,6 +797,7 @@ function generateWordGraph(transGraphContainer, rawCaptionArray, listOfLowerCase
         var d = {};
         var wPos = j/taggedSentences[i].length * w;
         d.timeStamp = ySec;
+        d.tagLabel = tagLabel; 
         d.y = yloc;
         d.lineInd = i;
         // d.speaker = captionArray[i][2];
@@ -843,8 +844,8 @@ function generateWordGraph(transGraphContainer, rawCaptionArray, listOfLowerCase
                 .attr('class', 'd3-tip')
                 .offset([0, 10])
                 .direction('e');
-    transSvg.call(tip);
-    var rects = transSvg.selectAll("rect")
+    tagSvg.call(tip);
+    var rects = tagSvg.selectAll("rect")
              .data(graphData).enter()
              .append("rect")
              .attr("x", function (d) { return d.x; })
@@ -852,6 +853,7 @@ function generateWordGraph(transGraphContainer, rawCaptionArray, listOfLowerCase
              .attr("width", function (d) { return d.width; })
              .attr("z", 1)
              .attr("height", function (d) { return d.height; })
+             .attr("tagLabel", function (d) { return d.tagLabel; })
              .attr("fill", function (d) {return d.fillColor;})
              .attr("fill-opacity", function (d) {return d.fillOpacity;})
              .on("mouseover", function(d){
@@ -889,7 +891,7 @@ function generateWordGraph(transGraphContainer, rawCaptionArray, listOfLowerCase
              });
 
     var fisheye = d3.fisheye.circular().radius(100);
-    transSvg.on('mousemove', function(){
+    tagSvg.on('mousemove', function(){
         // implementing fisheye distortion
         fisheye.focus(d3.mouse(this));
         rects.each(function(d) { d.fisheye = fisheye(d); })
@@ -902,7 +904,7 @@ function generateWordGraph(transGraphContainer, rawCaptionArray, listOfLowerCase
                return d.height * d.fisheye.z; 
              });
     });
-    transSvg.on('mouseleave', function(){
+    tagSvg.on('mouseleave', function(){
         rects.each(function(d){d.fisheye = fisheye(d);})
              .attr("x", function(d){return d.x;})
              .attr("y", function(d){return d.y;})
@@ -926,8 +928,12 @@ function generateICGraph(transGraphContainer, rawCaptionArray, listOfLowerCaseLi
 
     var wtScale = d3.scale.quantize()
                     .domain([0,1])
-                    .range([0.05, 0.1, 0.2, 0.9]);
+                    //.range([0.05, 0.1, 0.2, 0.9]);
+                    .range(["#deebf7", "#c6dbef", "#6baed6", "#08519c"]);
 
+    var zScale = d3.scale.quantize()
+                   .domain([0,1])
+                   .range([10, 20, 30, 40]);
 
     captionArray = removeEmptyLines(rawCaptionArray);
     // d3.select(transGraphContainer).selectAll("svg").remove();
@@ -963,7 +969,7 @@ function generateICGraph(transGraphContainer, rawCaptionArray, listOfLowerCaseLi
 
     // create and store data object for visualization
     var graphData = [];
-    var graphColor, graphOpacity;
+    var graphColor, graphOpacity, zIndex;
     for (var i=0; i < captionArray.length; i++){
       var ySec = hmsToSec(captionArray[i][0]);
       var yloc = transcriptScale(ySec);
@@ -991,14 +997,18 @@ function generateICGraph(transGraphContainer, rawCaptionArray, listOfLowerCaseLi
           // weight scaling
           var normIC = textMetadataObj[dWordFiltered]["infoContent"]/
                        highestInfoContent;
-          graphOpacity = wtScale(normIC);
-          graphColor = "#084594";
+          // graphOpacity = wtScale(normIC);
+          // graphColor = "#084594";
+          graphColor = wtScale(normIC);
+          zIndex = zScale(normIC);
         }
 
         d.text = dWord;
         d.rowIndex = i;
         d.fillColor = graphColor;
-        d.fillOpacity = graphOpacity;
+        d.zindex = zIndex;
+        // d.fillOpacity = graphOpacity;
+        d.fillOpacity = 1;
         d.height = 2;
         // d.width = w/maxTranLine;
         d.width = w/taggedSentences[i].length;
@@ -1019,7 +1029,7 @@ function generateICGraph(transGraphContainer, rawCaptionArray, listOfLowerCaseLi
              .attr("x", function (d) { return d.x; })
              .attr("y", function (d) { return d.y; })
              .attr("width", function (d) { return d.width; })
-             .attr("z", 1)
+             .attr("z", function (d) { return d.zIndex; })
              .attr("rowIndex", function(d){return d.rowIndex;})
              .attr("height", function (d) { return d.height; })
              .attr("fill", function (d) {return d.fillColor;})
@@ -1081,4 +1091,243 @@ function generateICGraph(transGraphContainer, rawCaptionArray, listOfLowerCaseLi
     });
 
     return graphData;
+}
+
+
+function generateMultiWordGraphs(transGraphContainer, rawCaptionArray, listOfLowerCaseLines, taggedSentences, tagLabelList) {
+    
+    var tagLabel, 
+        listOfNameTagLists = [], 
+        tagTypeList = []
+        rectClassList = []
+        classColorList = [];
+
+    for (var ti=0; ti<tagLabelList.length;ti++){
+      tagLabel = tagLabelList[ti];
+      
+      if (["PERSON", "LOCATION"].indexOf(tagLabel) !== -1){
+          tagType = "NER";
+          nameTagList = [tagLabel];
+          if (tagLabel === "PERSON"){
+              classColor = $("#showPeople").siblings()
+                                           .css("background-color");
+              rectClass = "peopleRect";
+          } else if (tagLabel === "LOCATION"){
+              classColor = $("#showPlaces").siblings()
+                                           .css("background-color");
+              rectClass = "placeRect";
+          }
+      } else {
+          tagType = "POS";
+          if (tagLabel === "noun"){
+              nameTagList = ["NN", // common noun, singular or mass 
+                             "NNS"];  // common noun, plural
+              classColor = $("#showNouns").siblings()
+                                           .css("background-color");
+              rectClass = "nounRect";
+          
+          } else if (tagLabel === "name") {
+              nameTagList = ["NNP"]; // proper noun, singular
+              classColor = $("#showNames").siblings()
+                                          .css("background-color");
+          } else if (tagLabel === "verb") {
+              nameTagList = ["VB", // verb in base form
+                             "VBD", // verb, past tense
+                             "VBG", // verb, present participle/gerund
+                             "VBN", // verb, past participle
+                             "VBP", // verb, prs.tense, 3rd p.plural?
+                             "VPZ"]; // verb, prs tense, 3rd p.singular
+              classColor = $("#showVerbs").siblings()
+                                          .css("background-color");
+              rectClass = "verbRect";
+          } else if (tagLabel === "adjective") {
+              nameTagList = ["JJ", // adjective or numeral, ordinal
+                             "JJR", // comparative adjective
+                             "JJS"]; // superlative adjective
+              classColor = $("#showAdjectives").siblings()
+                                               .css("background-color");
+              rectClass = "adjectiveRect";
+          } else if (tagLabel === "adverb"){
+              nameTagList = ["RB", //adverb
+                             "RBR", // comparative adverb
+                             "RBS"]; // superlative adverb
+              classColor = $("#showAdverbs").siblings()
+                                            .css("background-color");
+              rectClass = "adverbRect";
+          } else {
+              console.log("Supplied tagLabel is not recognizable.");
+          }
+      }
+
+      listOfNameTagLists.push(nameTagList);
+      tagTypeList.push(tagType);
+      rectClassList.push(rectClass);
+      classColorList.push(classColor);
+    }  
+    console.log(listOfNameTagLists);
+    console.log(tagTypeList);
+    console.log(rectClassList);
+
+
+    captionArray = removeEmptyLines(rawCaptionArray);
+    // d3.select(transGraphContainer).selectAll("svg").remove();
+    var w = $(transGraphContainer).width();
+    docLength = hmsToSec(captionArray[captionArray.length-1][0]);
+    var h = $(transGraphContainer).height();
+    var tagSvg = d3.select(transGraphContainer)
+                     .append("svg")
+                     .attr("width", w)
+                     .attr("height", h);
+    var transcriptScale = d3.scale.linear()
+                            .domain([0, docLength])
+                            .range([0, h]);
+    var transScaleX = d3.scale.linear()
+                              .domain([0, speakerList.length])
+                              .range([0, w]);
+    var transGraphPadding = 0;
+    var scaleHeights = 0;
+    var constantHeight = 0;
+    var maxTranLine = 0
+
+    // to normalize the widths of the lines of text, need to find
+    // the maximum length
+    for (i=0; i<listOfLowerCaseLines.length;i++){
+      if (maxTranLine < listOfLowerCaseLines[i].length){
+        maxTranLine = listOfLowerCaseLines[i].length;
+      }
+    }
+
+    // create and store data object for visualization
+    var graphData = [];
+
+    function updateGraphData(tLbl, rctCls, tTyp, nmTgLst, clsClr){
+      for (var i=0; i < captionArray.length; i++){
+        var ySec = hmsToSec(captionArray[i][0]);
+        var yloc = transcriptScale(ySec);
+        for (var j=0; j<taggedSentences[i].length;j++){
+          var d = {};
+          var wPos = j/taggedSentences[i].length * w;
+          d.timeStamp = ySec;
+          d.tagLabel = tLbl; 
+          d.y = yloc;
+          d.rectClass = rctCls;
+          d.lineInd = i;
+          d.x = wPos;
+          var dWord = Object.keys(taggedSentences[i][j])[0];
+          d.text = dWord;
+          var label = taggedSentences[i][j][dWord][tTyp];
+          if (nmTgLst.indexOf(label) === -1){
+            d.fillColor = "rgba(255, 255, 255)";
+            d.fillOpacity = 0;
+            // d.height = 5;
+          } else {
+            d.fillColor = clsClr;
+            d.fillOpacity = 0.8;
+            d.height = 2;
+          }
+          d.width = 1/taggedSentences[i].length * w;
+          if (d.fillColor === clsClr){
+            graphData.push(d);
+          }
+        }
+      }
+    }
+
+    for (var ti=0;ti<tagLabelList.length;ti++){
+      updateGraphData(tagLabelList[ti],
+                      rectClassList[ti],
+                      tagTypeList[ti],
+                      listOfNameTagLists[ti],
+                      classColorList[ti]);
+    }
+
+    console.log(graphData);
+
+    var tip = d3.tip()
+                .attr('class', 'd3-tip')
+                .offset([0, 10])
+                .direction('e');
+    tagSvg.call(tip);
+    var rects = tagSvg.selectAll("rect")
+             .data(graphData).enter()
+             .append("rect")
+             .attr("x", function (d) { return d.x; })
+             .attr("y", function (d) { return d.y; })
+             .attr("width", function (d) { return d.width; })
+             .attr("z", 1)
+             .attr("height", function (d) { return d.height; })
+             .attr("tagLabel", function (d) { return d.tagLabel; })
+             .attr("fill", function (d) {return d.fillColor;})
+             .attr("fill-opacity", function (d) {return d.fillOpacity;})
+             .attr("class", function(d) {return d.rectClass;})
+             .on("mouseover", function(d){
+               tip.html(d.text).show();
+               if (prevClickedTag === ""){
+                 d3.select(this).attr('fill', greenHighlight);
+               }
+               d3.select(this).attr('z', 50);
+               $("#transTable tr").eq(d.lineInd).children().last()
+                                  .addClass("hoverHighlight");
+             })
+             .on("mouseout", function(d){
+               tip.hide();
+               if (prevClickedTag === ""){
+                 d3.select(this).attr('fill', d.fillColor);
+               }
+               d3.select(this).attr('z', 1);
+               $("#transTable").find("td").removeClass("hoverHighlight");
+             })
+             .on("click", function(d){
+               if (d.lineInd > 10){
+                 scrollIndex = d.lineInd-10;
+               } else {
+                 scrollIndex = 0;
+               }
+               var transScrollItem = $('#transTable tr')
+                                         .eq(scrollIndex)
+                                         .children().last();
+               $('#transContent').scrollTo($(transScrollItem),
+                                           {duration: 'slow',
+                                           transition: 'ease-in-out'});
+              
+             });
+
+    var fisheye = d3.fisheye.circular().radius(100);
+    tagSvg.on('mousemove', function(){
+        // implementing fisheye distortion
+        fisheye.focus(d3.mouse(this));
+        rects.each(function(d) { d.fisheye = fisheye(d); })
+             .attr("x", function(d) { return d.fisheye.x; })
+             .attr("y", function(d) { return d.fisheye.y; })
+             .attr("width", function(d) {
+                return d.width * d.fisheye.z;
+             })
+             .attr("height", function(d) { 
+               return d.height * d.fisheye.z; 
+             });
+    });
+    tagSvg.on('mouseleave', function(){
+        rects.each(function(d){d.fisheye = fisheye(d);})
+             .attr("x", function(d){return d.x;})
+             .attr("y", function(d){return d.y;})
+             .attr("width", function(d){return d.width;})
+             .attr("height", function(d){return d.height;});
+    });
+    
+    return graphData;
+}
+
+function returnSelectedLabels(){
+  var outLabelList = [];
+  var labelLookupList = ["PERSON", "LOCATION", "name", "noun",
+                         "verb", "adjective", "adverb"];
+  var labelIDList = ["#showPeople", "#showPlaces", "#showNames",
+                     "#showNouns", "#showVerbs", "#showAdjectives",
+                     "#showAdverbs"];
+  for (var i=0;i<labelIDList.length;i++){
+    if ($(labelIDList[i]).is(':checked')){
+      outLabelList.push(labelLookupList[i]);
+    }
+  }
+  return outLabelList;
 }
