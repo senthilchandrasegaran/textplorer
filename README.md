@@ -11,9 +11,7 @@ Finally a "core concept" is chosen among these categories, and based on the rela
 
 ## What does this tool do?
 GT-Helper uses natural language processing (NLP) techniques along with interactive text visualizations to aid the grounded theory method.
-
-## So... what does this tool do, really?
-Nothing yet, but watch this space as we explore the possibilities!
+This is a work-in-progress, I'll update the README once the work reaches some maturity.
 
 ## Dependencies
 We use the Stanford Parts-of-Speech (POS) Tagger and the Stanford Named Entity Recognition (NER) Tagger, which require a little setup in Java. To make this work,   

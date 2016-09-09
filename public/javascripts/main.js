@@ -1358,17 +1358,6 @@ window.onload = function () {
         var advCount = getTagCounts(advList, "POS", sentenceTags);
         $("#advCount").text(advCount);
 
-        /*
-        icGraphData = generateTransGraph(
-                            "#icGraphContent", // transcript graph
-                            captionArray, // array from text uploaded
-                            speakerList,  // list of speakers
-                            speakerDiff,  // 1=yes, 0=no
-                            lowerCaseLines, // all lines in lowercase
-                            textMetadata, // object with all ICs
-                            true // whether or not to show IC
-                      );
-        */
         icGraphData = generateICGraph("#icGraphContent", 
                                       captionArray,
                                       lowerCaseLines,
@@ -1418,17 +1407,9 @@ window.onload = function () {
           $("#tagList").find("text").each(function() {
               $(this).removeClass("places");
           });
-          // d3.select("#tagGraphContent").selectAll("svg").remove();
       } else {
         tagLines($("#transContent"), sentenceTags, "LOCATION", "places");
         tagWordCloud($("#tagList"), textMetadata, "LOCATION", "places");
-        /*
-        generateMultiWordGraphs("#tagGraphContent", 
-                                captionArray,
-                                lowerCaseLines,
-                                sentenceTags,
-                                "LOCATION");
-                                */
       }
       var checkedLabels = returnSelectedLabels();
       d3.select("#tagGraphContent").selectAll("svg").remove();
@@ -1447,17 +1428,9 @@ window.onload = function () {
           $("#tagList").find("text").each(function() {
               $(this).removeClass("nouns");
           });
-          // d3.select("#tagGraphContent").selectAll("svg").remove();
       } else {
         tagLines($("#transContent"), sentenceTags, "noun", "nouns");
         tagWordCloud($("#tagList"), textMetadata, "noun", "nouns");
-        /*
-        generateMultiWordGraphs("#tagGraphContent", 
-                                captionArray,
-                                lowerCaseLines,
-                                sentenceTags,
-                                "noun");
-                                */
       }
       var checkedLabels = returnSelectedLabels();
       d3.select("#tagGraphContent").selectAll("svg").remove();
@@ -1476,17 +1449,9 @@ window.onload = function () {
           $("#tagList").find("text").each(function() {
               $(this).removeClass("names");
           });
-          // d3.select("#tagGraphContent").selectAll("svg").remove();
       } else {
         tagLines($("#transContent"), sentenceTags, "name", "names");
         tagWordCloud($("#tagList"), textMetadata, "name", "names");
-        /*
-        generateMultiWordGraphs("#tagGraphContent", 
-                                captionArray,
-                                lowerCaseLines,
-                                sentenceTags,
-                                "name");
-                                */
       }
       var checkedLabels = returnSelectedLabels();
       d3.select("#tagGraphContent").selectAll("svg").remove();
@@ -1505,17 +1470,9 @@ window.onload = function () {
           $("#tagList").find("text").each(function() {
               $(this).removeClass("verbs");
           });
-          // d3.select("#tagGraphContent").selectAll("svg").remove();
       } else {
         tagLines($("#transContent"), sentenceTags, "verb", "verbs");
         tagWordCloud($("#tagList"), textMetadata, "verb", "verbs");
-        /*
-        generateMultiWordGraphs("#tagGraphContent", 
-                          captionArray,
-                          lowerCaseLines,
-                          sentenceTags,
-                          "verb");
-                          */
       }
       var checkedLabels = returnSelectedLabels();
       d3.select("#tagGraphContent").selectAll("svg").remove();
@@ -1534,17 +1491,9 @@ window.onload = function () {
           $("#tagList").find("text").each(function() {
               $(this).removeClass("adverbs");
           });
-          // d3.select("#tagGraphContent").selectAll("svg").remove();
       } else {
         tagLines($("#transContent"), sentenceTags, "adverb", "adverbs");
         tagWordCloud($("#tagList"), textMetadata, "adverb", "adverbs");
-        /*
-        generateMultiWordGraphs("#tagGraphContent", 
-                          captionArray,
-                          lowerCaseLines,
-                          sentenceTags,
-                          "adverb");
-                          */
       }
       var checkedLabels = returnSelectedLabels();
       d3.select("#tagGraphContent").selectAll("svg").remove();
@@ -1563,19 +1512,11 @@ window.onload = function () {
           $("#tagList").find("text").each(function() {
               $(this).removeClass("adjectives");
           });
-          // d3.select("#tagGraphContent").selectAll("svg").remove();
       } else {
         tagLines($("#transContent"), sentenceTags, "adjective",
                 "adjectives");
         tagWordCloud($("#tagList"), textMetadata, "adjective",
                 "adjectives");
-        /*
-        generateMultiWordGraphs("#tagGraphContent", 
-                                captionArray,
-                                lowerCaseLines,
-                                sentenceTags,
-                                "adjective");
-                                */
       }
       var checkedLabels = returnSelectedLabels();
       d3.select("#tagGraphContent").selectAll("svg").remove();
