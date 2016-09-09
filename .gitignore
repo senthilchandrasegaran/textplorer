@@ -13,3 +13,5 @@ git_commands.txt
 node_modules/
 public/userlog/
 public/clicklog/
+public/pythonscripts/*.txt
+public/pythonscripts/*.json
