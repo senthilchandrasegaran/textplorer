@@ -35,8 +35,8 @@ st = StanfordPOSTagger(POSModel, POSJar)
 def getMetadata(textData):
     ic_freq_obj = {}
     textArray = json.dumps(textData).split("\\n")
-    parsedTextArray = [x.split(',') for x in textArray]
-    sentenceList = [x[3] for x in parsedTextArray[1:] if len(x)==4]
+    parsedTextArray = [x.split(';') for x in textArray]
+    sentenceList = [x[3] for x in parsedTextArray if len(x)==4]
     filteredSentenceList = []
     filteredWords = []
     nestedWordList = []
@@ -100,6 +100,8 @@ def getMetadata(textData):
     uniquetokens = list(set(filtered_tokens))
     icArray = []
     tagCountObj = {}
+    outLiers = []
+    maxInfoContent = 0
     for token in uniquetokens:
         tempNum = 0
         synsets = wn.synsets(token)
@@ -112,8 +114,13 @@ def getMetadata(textData):
                     break
             if tempNum == 1:
                 infoContentValue = information_content(synsetItem,
-                                                  ic_bnc_plus1)
-                icArray.append((token, infoContentValue))
+                                                       ic_bnc_plus1)
+                if infoContentValue >= 1e+300 :
+                    outLiers.append((token, infoContentValue))
+                else :
+                    icArray.append((token, infoContentValue))
+                    if maxInfoContent < infoContentValue:
+                        maxInfoContent = infoContentValue
             else :
                 icArray.append((token, 0.0))
         ####
@@ -134,6 +141,8 @@ def getMetadata(textData):
         allTags["NERList"] = NERList
         tagCountObj[token] = allTags
 
+    for outLier, ic in outLiers:
+        icArray.append((outLier, maxInfoContent))
     for word, ic in icArray:
         metric = {}
         metric["infoContent"] = ic

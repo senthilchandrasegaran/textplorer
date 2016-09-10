@@ -271,9 +271,10 @@ window.onload = function () {
       // note: "send" from POV of client
       dataType: "text"
     }).done(function (data) {
-      captionArray = $.csv.toArrays(data);
+      var options={"separator" : ";"}
+      captionArray = $.csv.toArrays(data, options);
       // remove the first line, since it's the data header.
-      captionArray.splice(0,1);
+      // captionArray.splice(0,1);
       var longestLineLength = 0; // num words in the longest line
       for (var i in captionArray) {
         if ((captionArray[i].length > 1) &&
@@ -416,9 +417,10 @@ window.onload = function () {
         var ind = 0;
         for (ind in transItemIds) {
           var numInd = transItemIds[ind];
-          var startTime = hmsToSec(captionArray[numInd][0]);
-          var duration = hmsToSec(captionArray[numInd][1]) -
-                      startTime;
+          // var startTime = hmsToSec(captionArray[numInd][0]);
+          var startTime = numInd;
+          //var duration = hmsToSec(captionArray[numInd][1]) - startTime;
+          var duration = 1;
           timeSegArray.push([startTime, duration]);
         }
       });
@@ -513,9 +515,13 @@ window.onload = function () {
               var ind = 0;
               for (ind in transItemIds) {
                   var numInd = transItemIds[ind];
+                  /*
                   var startTime = hmsToSec(captionArray[numInd][0]);
                   var duration = hmsToSec(captionArray[numInd][1]) -
                            startTime;
+                           */
+                  var startTime = numInd;
+                  var duration = 1;
                   timeSegArray.push([startTime, duration]);
               }
             } else {
@@ -569,9 +575,13 @@ window.onload = function () {
           var ind = 0;
           for (ind in transItemIds) {
               var numInd = transItemIds[ind];
+              /*
               var startTime = hmsToSec(captionArray[numInd][0]);
               var duration = hmsToSec(captionArray[numInd][1]) -
                            startTime;
+                           */
+              var startTime = numInd;
+              var duration = 1;
               timeSegArray.push([startTime, duration]);
           }
       });
@@ -857,9 +867,10 @@ window.onload = function () {
           }
           for (var pindex in protoTimeArray) {
               for (var ind in selectedIndices) {
-                  if (protoTimeArray[pindex][0] == selectedIndices[ind][3]) {
-                      var timeInSecs = hmsToSec(selectedIndices[ind][2]) -
-                         hmsToSec(selectedIndices[ind][1])
+                  if (protoTimeArray[pindex][0] ===
+                      selectedIndices[ind][3]) {
+                      var timeInSecs = hmsToSec(selectedIndices[ind][2]) - hmsToSec(selectedIndices[ind][1]);
+                      var timeInSecs = 
                       protoTimeArray[pindex][2] += timeInSecs;
                   }
               }
@@ -1150,8 +1161,10 @@ window.onload = function () {
             for (var ind=0; ind<selectedIndices.length; ind++){
               var rowData = selectedIndices[ind];
               var d = {};
-              d.startTime = hmsToSec(rowData[1]);
-              d.endTime = hmsToSec(rowData[2]);
+              // d.startTime = hmsToSec(rowData[1]);
+              // d.endTime = hmsToSec(rowData[2]);
+              d.startTime = ind;
+              d.endTime = ind + 1;
               d.y = protoY(d.startTime);
               d.code = rowData[3];
               d.codeIndex = protocolList.indexOf(d.code);

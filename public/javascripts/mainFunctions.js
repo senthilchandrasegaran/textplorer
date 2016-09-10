@@ -130,6 +130,7 @@ function textICVis(displayTextObj, textMetadataObj){
                  'font-family': 'Roboto, sans-serif',
                  'font-weight': textWeight});
   });
+  console.log(collectIC);
 }
 
 function getTagCounts(lookupTags, tagKey, sentenceTags){
@@ -489,7 +490,8 @@ function generateTransGraph(transGraphContainer, rawCaptionArray, speakerList, s
     captionArray = removeEmptyLines(rawCaptionArray);
     d3.select(transGraphContainer).selectAll("svg").remove();
     var w = $(transGraphContainer).width();
-    docLength = hmsToSec(captionArray[captionArray.length-1][0]);
+    // docLength = hmsToSec(captionArray[captionArray.length-1][0]);
+    docLength = captionArray.length;
     var h = $(transGraphContainer).height();
     var transSvg = d3.select(transGraphContainer).append("svg")
                      .attr("width", w)
@@ -552,7 +554,8 @@ function generateTransGraph(transGraphContainer, rawCaptionArray, speakerList, s
     var graphData = [];
     for (i=0; i < captionArray.length; i++){
       var d = {};
-      var ySec = hmsToSec(captionArray[i][0]);
+      // var ySec = hmsToSec(captionArray[i][0]);
+      var ySec = i;
       d.timeStamp = ySec;
       var yloc = transcriptScale(ySec);
       d.y = yloc;
@@ -581,9 +584,11 @@ function generateTransGraph(transGraphContainer, rawCaptionArray, speakerList, s
       if (constantHeight !== 0){
         d.height = 1;
       } else {
-        var endSec = hmsToSec(captionArray[i][1]);
+        // var endSec = hmsToSec(captionArray[i][1]);
+        var endSec = i+1;
         d.endTime = endSec;
-        var startSec = hmsToSec(captionArray[i][0]);
+        // var startSec = hmsToSec(captionArray[i][0]);
+        var startSec = i;
         var scaledHeight = transcriptScale(endSec - startSec);
         if (scaledHeight < 1){
           d.height = 1;
@@ -692,8 +697,8 @@ function generateTransGraph(transGraphContainer, rawCaptionArray, speakerList, s
         transClickItem.addClass('hoverHighlight');
         // this small snippet below to scroll the transcript to show
         // the line corresponding to the item selected in transgraph
-        if (graphIndex > 10){
-          scrollIndex = graphIndex-10;
+        if (graphIndex > 3){
+          scrollIndex = graphIndex-1;
         } else {
           scrollIndex = 0;
         }
@@ -726,12 +731,18 @@ function generateICGraph(transGraphContainer, rawCaptionArray, listOfLowerCaseLi
 
     var zScale = d3.scale.quantize()
                    .domain([0,1])
-                   .range([10, 20, 30, 40]);
+                   .range([10, 20, 30, 50]);
 
     captionArray = removeEmptyLines(rawCaptionArray);
     // d3.select(transGraphContainer).selectAll("svg").remove();
     var w = $(transGraphContainer).width();
-    docLength = hmsToSec(captionArray[captionArray.length-1][0]);
+    // Uncomment the below line if timestamps are unique for each line
+    // docLength = hmsToSec(captionArray[captionArray.length-1][0]);
+
+    // Uncomment the below line if the order of lines is what you want
+    // to use, not the timestamps (usually applicable for transcripts
+    // where the timestamps have a pooor resolution, e.g. 1 minute)
+    docLength = captionArray.length;
     var h = $(transGraphContainer).height();
     var transSvg = d3.select(transGraphContainer).append("svg")
                      .attr("width", w)
@@ -764,7 +775,8 @@ function generateICGraph(transGraphContainer, rawCaptionArray, listOfLowerCaseLi
     var graphData = [];
     var graphColor, graphOpacity, zIndex;
     for (var i=0; i < captionArray.length; i++){
-      var ySec = hmsToSec(captionArray[i][0]);
+      // var ySec = hmsToSec(captionArray[i][0]);
+      var ySec = i;
       var yloc = transcriptScale(ySec);
       for (var j=0; j<taggedSentences[i].length;j++){
         var d = {};
@@ -803,8 +815,8 @@ function generateICGraph(transGraphContainer, rawCaptionArray, listOfLowerCaseLi
         // d.fillOpacity = graphOpacity;
         d.fillOpacity = 1;
         // d.height = 2;
-        d.height = zIndex/5;
-        d.width = w/maxTranLine;
+        d.height = transcriptScale(1);
+        d.width = w/maxTranLine * zIndex/5;
         // d.width = w/taggedSentences[i].length;
         if (d.fillColor !== "#777"){
           graphData.push(d);
@@ -856,7 +868,7 @@ function generateICGraph(transGraphContainer, rawCaptionArray, listOfLowerCaseLi
              })
              .on("click", function(d){
                if (d.lineInd > 10){
-                 scrollIndex = d.lineInd-10;
+                 scrollIndex = d.lineInd-1;
                } else {
                  scrollIndex = 0;
                }
@@ -897,11 +909,12 @@ function generateICGraph(transGraphContainer, rawCaptionArray, listOfLowerCaseLi
 
 function generateMultiWordGraphs(transGraphContainer, rawCaptionArray, listOfLowerCaseLines, taggedSentences, tagLabelList) {
     
-    var tagLabel, 
+    var tagLabel, tagIndicatorScale, 
         listOfNameTagLists = [], 
         tagTypeList = []
         rectClassList = []
-        classColorList = [];
+        classColorList = []
+        tagIndicatorScales = [];
 
     for (var ti=0; ti<tagLabelList.length;ti++){
       tagLabel = tagLabelList[ti];
@@ -913,10 +926,12 @@ function generateMultiWordGraphs(transGraphContainer, rawCaptionArray, listOfLow
               classColor = $("#showPeople").siblings()
                                            .css("background-color");
               rectClass = "peopleRect";
+              tagIndicatorScale = 10;
           } else if (tagLabel === "LOCATION"){
               classColor = $("#showPlaces").siblings()
                                            .css("background-color");
               rectClass = "placeRect";
+              tagIndicatorScale = 10;
           }
       } else {
           tagType = "POS";
@@ -926,11 +941,13 @@ function generateMultiWordGraphs(transGraphContainer, rawCaptionArray, listOfLow
               classColor = $("#showNouns").siblings()
                                            .css("background-color");
               rectClass = "nounRect";
+              tagIndicatorScale = 3;
           
           } else if (tagLabel === "name") {
               nameTagList = ["NNP"]; // proper noun, singular
               classColor = $("#showNames").siblings()
                                           .css("background-color");
+              tagIndicatorScale = 10;
           } else if (tagLabel === "verb") {
               nameTagList = ["VB", // verb in base form
                              "VBD", // verb, past tense
@@ -941,6 +958,7 @@ function generateMultiWordGraphs(transGraphContainer, rawCaptionArray, listOfLow
               classColor = $("#showVerbs").siblings()
                                           .css("background-color");
               rectClass = "verbRect";
+              tagIndicatorScale = 3;
           } else if (tagLabel === "adjective") {
               nameTagList = ["JJ", // adjective or numeral, ordinal
                              "JJR", // comparative adjective
@@ -948,6 +966,7 @@ function generateMultiWordGraphs(transGraphContainer, rawCaptionArray, listOfLow
               classColor = $("#showAdjectives").siblings()
                                                .css("background-color");
               rectClass = "adjectiveRect";
+              tagIndicatorScale = 3;
           } else if (tagLabel === "adverb"){
               nameTagList = ["RB", //adverb
                              "RBR", // comparative adverb
@@ -955,6 +974,7 @@ function generateMultiWordGraphs(transGraphContainer, rawCaptionArray, listOfLow
               classColor = $("#showAdverbs").siblings()
                                             .css("background-color");
               rectClass = "adverbRect";
+              tagIndicatorScale = 3;
           } else {
               console.log("Supplied tagLabel is not recognizable.");
           }
@@ -964,12 +984,14 @@ function generateMultiWordGraphs(transGraphContainer, rawCaptionArray, listOfLow
       tagTypeList.push(tagType);
       rectClassList.push(rectClass);
       classColorList.push(classColor);
+      tagIndicatorScales.push(tagIndicatorScale);
     }  
 
     captionArray = removeEmptyLines(rawCaptionArray);
     // d3.select(transGraphContainer).selectAll("svg").remove();
     var w = $(transGraphContainer).width();
-    docLength = hmsToSec(captionArray[captionArray.length-1][0]);
+    // docLength = hmsToSec(captionArray[captionArray.length-1][0]);
+    docLength = captionArray.length;
     var h = $(transGraphContainer).height();
     var tagSvg = d3.select(transGraphContainer)
                      .append("svg")
@@ -997,9 +1019,10 @@ function generateMultiWordGraphs(transGraphContainer, rawCaptionArray, listOfLow
     // create and store data object for visualization
     var graphData = [];
 
-    function updateGraphData(tLbl, rctCls, tTyp, nmTgLst, clsClr){
+    function updateGraphData(tLbl, rctCls, tTyp, nmTgLst, clsClr,tgScl){
       for (var i=0; i < captionArray.length; i++){
-        var ySec = hmsToSec(captionArray[i][0]);
+        // var ySec = hmsToSec(captionArray[i][0]);
+        var ySec = i;
         var yloc = transcriptScale(ySec);
         for (var j=0; j<taggedSentences[i].length;j++){
           var d = {};
@@ -1020,11 +1043,11 @@ function generateMultiWordGraphs(transGraphContainer, rawCaptionArray, listOfLow
             // d.height = 5;
           } else {
             d.fillColor = clsClr;
-            d.fillOpacity = 0.8;
-            d.height = 4;
+            d.fillOpacity = 1;
+            d.height = transcriptScale(1);
           }
           // d.width = 1/taggedSentences[i].length * w;
-          d.width = w/maxTranLine;
+          d.width = w/maxTranLine * tgScl;
           if (d.fillColor === clsClr){
             graphData.push(d);
           }
@@ -1037,7 +1060,8 @@ function generateMultiWordGraphs(transGraphContainer, rawCaptionArray, listOfLow
                       rectClassList[ti],
                       tagTypeList[ti],
                       listOfNameTagLists[ti],
-                      classColorList[ti]);
+                      classColorList[ti],
+                      tagIndicatorScales[ti]);
     }
 
     var tip = d3.tip()
@@ -1076,7 +1100,7 @@ function generateMultiWordGraphs(transGraphContainer, rawCaptionArray, listOfLow
              })
              .on("click", function(d){
                if (d.lineInd > 10){
-                 scrollIndex = d.lineInd-10;
+                 scrollIndex = d.lineInd-1;
                } else {
                  scrollIndex = 0;
                }
