@@ -81,6 +81,9 @@ var protocolGraphHeight = 0;
 // etc.
 var textMetadata = {};
 var sentenceTags = [];
+var prevClickedRow = "";
+var isRowClicked = false;
+var topicModels;
 // Options to control visualizations
 var highlightIC = true;   // control whether or not to highlight
                           // transcript based on information content.
@@ -273,6 +276,7 @@ window.onload = function () {
     }).done(function (data) {
       var options={"separator" : ";"}
       captionArray = $.csv.toArrays(data, options);
+      docLength = captionArray.length;
       // remove the first line, since it's the data header.
       // captionArray.splice(0,1);
       var longestLineLength = 0; // num words in the longest line
@@ -329,7 +333,7 @@ window.onload = function () {
              '<td style="border: 1px solid' + labelColor + '; '+
              'border-right: 7px solid' + labelColor + '; '+
              'color: rgba(100, 100, 100, 1); ' +
-             'font-family:sans-serif; font-size:7pt;"'+
+             'font-family:Roboto; font-size:9pt;"'+
              'class="unselectable" id="speaker'+i+'">' +
               captionArray[i][2] +
              '</td>' +
@@ -444,7 +448,6 @@ window.onload = function () {
             });
         }
       });
-
       //---------------------------------------------------------------
       // dark highlighting on mouse click
       //---------------------------------------------------------------
@@ -542,6 +545,135 @@ window.onload = function () {
             }
           }
       });
+
+
+
+      //------HIGHLIGHTING WITH TOPIC KEYWORDS-------------------------
+
+      //----------------------------------------------------------
+      // light highlighting on mouse enter
+      //----------------------------------------------------------
+      var topicHoverText = [];
+      var topicTransItems = [];
+      var topicTransItemIds = [];
+
+      var topicListDOM = $("#topicsTable");
+      topicListDOM.on('mouseenter', 'tr', function () {
+        $(this).addClass('hoverHighlight');
+        var topicHoverSpans = $(this).find("span");
+        // do the hiRects selection here so it doesn't just highlight
+        // the last item in the loop
+        var hiRects = $("#transGraphContent svg").children('rect');
+        if (isRowClicked){
+          // do nothing
+        } else {
+            hiRects.attr("fill", transGraphColor);
+        }
+
+        for (var i=0;i<topicHoverSpans.length;i++){
+          // topicTextArray.push(topicHoverTexts[i].innerHTML);
+          var topicHoverText = topicHoverSpans[i].innerHTML;
+          // use regular expression to match the whole word only
+          var regex = new RegExp("\\b" + topicHoverText + "\\b");
+          var transFilter = $("#transTable").find("span:containsNC('" +
+                                  topicHoverText + "')");
+          var transItems = transFilter.filter(function(){
+                  return (this.textContent).toLowerCase().match(regex);
+                }).parents("td");
+          transItems.addClass('hoverHighlight');
+          if (isRowClicked){
+            // do nothing to the transGraph on mouseenter if a word in the
+            // tag cloud is already clicked.
+          } else {
+            transItems.each(function (index, value) {
+              var idIndex = value.parentNode.rowIndex;
+              topicTransItemIds.push(idIndex);
+              // change color of text rep bars
+              d3.select(hiRects[idIndex])
+                .attr("fill", oldHighlighting);
+              var numLines = hiRects.length;
+            });
+          }
+        }
+      });
+
+      //---------------------------------------------------------------
+      // remove light highlighting on mouse leave
+      //---------------------------------------------------------------
+      topicListDOM.on('mouseleave', 'tr', function () {
+        $(this).removeClass('hoverHighlight');
+        $("#transTable").find("td").removeClass('hoverHighlight');
+        if (isRowClicked){
+          // do nothing to the transGraph on mouseleave if a word in the
+          // tag cloud is already clicked.
+        } else {
+          d3.select("#transGraphContent").selectAll("svg")
+            .selectAll("rect")
+            .data(transGraphData)
+            .each(function(d){
+              d3.select(this).attr("fill", d.fillColor);
+            });
+        }
+      });
+      //---------------------------------------------------------------
+      // dark highlighting on mouse click
+      //---------------------------------------------------------------
+      topicListDOM.on('click', 'tr', function () {
+          var topicTransItemIds = [];
+          var hiRects = $("#transGraphContent svg").children('rect');
+          // KB edits ----
+          if (prevClickedRow !== $(this).attr('id')) {
+            hiRects.attr("fill", transGraphColor);
+            // This means the row was not already clicked. Assuming
+            // another row was clicked,
+            $(this).parent().children('tr')
+                   .removeClass('tagClickHighlight');
+            $(this).addClass('tagClickHighlight');
+            prevClickedRow = $(this).attr('id');
+            isRowClicked = true;
+            $('.textClickHighlight').removeClass('textClickHighlight');
+            // iterate over all words in the topic
+            var topicHoverSpans = $(this).find("span");
+            for (var i=0;i<topicHoverSpans.length;i++){
+              // topicTextArray.push(topicHoverTexts[i].innerHTML);
+              var topicHoverText = topicHoverSpans[i].innerHTML;
+              // use regular expression to match the whole word only
+              var regex = new RegExp("\\b" + topicHoverText + "\\b");
+              var transFilter =
+                $("#transTable").find("span:containsNC('" +
+                    topicHoverText + "')");
+              var transItems = transFilter.filter(function(){
+                      return (this.textContent)
+                                  .toLowerCase().match(regex);
+                    }).parents("td");
+              transItems.addClass('textClickHighlight');
+              $(transItems).each(function (index, value) {
+                var idIndex = value.parentNode.rowIndex;
+                topicTransItemIds.push(idIndex);
+                // change color of text rep bars
+                d3.select(hiRects[idIndex])
+                  .attr("fill", boldHighlightColor);
+                var numLines = hiRects.length;
+              });
+            }
+          } else {
+              prevClickedRow = "";
+              isRowClicked = false;
+              // if the same tag is clicked again, remove highlighting.
+              $(this).parent().children('tr')
+                     .removeClass('tagClickHighlight');
+              $("#transTable").find("td")
+                              .removeClass('textClickHighlight');
+              d3.select("#transGraphContent").selectAll("svg")
+                .selectAll("rect")
+                .data(transGraphData)
+                .each(function(d){
+                  d3.select(this).attr("fill", d.fillColor);
+                });
+          }
+      });
+
+      //------END HIGHLIGHTING WITH TOPIC KEYWORDS---------------------
 
 
       //---------------------------------------------------------------
@@ -848,6 +980,7 @@ window.onload = function () {
       }); // end function for updating protocols from entered text
 
       // Add total protocol distributions
+      /*
       $('ul.tabs li:eq(2)').on('click', function () {
           cTime =  new Date();
           var tempTime = cTime.getHours() + ":" +
@@ -882,6 +1015,8 @@ window.onload = function () {
                   maxTime = protoTimeArray[j][2];
               }
           }
+          // update chart showing lines coded under each code
+          
           var chartWidth = $("#totalProtocols").width() - 20;
           var chartHeight = $("#totalProtocols").height();
 
@@ -931,6 +1066,7 @@ window.onload = function () {
                   return d[1];
               });
       });
+      */
 
       // code to update word cloud based on user selection:
       $('#transTable').on('mouseup', function (e){
@@ -1160,11 +1296,12 @@ window.onload = function () {
             var codedData = [];
             for (var ind=0; ind<selectedIndices.length; ind++){
               var rowData = selectedIndices[ind];
+              console.log(rowData);
               var d = {};
               // d.startTime = hmsToSec(rowData[1]);
               // d.endTime = hmsToSec(rowData[2]);
-              d.startTime = ind;
-              d.endTime = ind + 1;
+              d.startTime = rowData[0];
+              d.endTime = rowData[0] + 1;
               d.y = protoY(d.startTime);
               d.code = rowData[3];
               d.codeIndex = protocolList.indexOf(d.code);
@@ -1174,7 +1311,7 @@ window.onload = function () {
                     ) + proSpace / 2;
               d.id = d.code + "line" + rowData[0];
               d.lineID = "line" + rowData[0];
-              d.height = 2;
+              d.height = protoY(1);
               d.width  = (protoGraphWidth-proSpace)/
                          (protocolList.length - 1);
               d.fill = protocolColorList[d.codeIndex];
@@ -1337,6 +1474,8 @@ window.onload = function () {
         console.log(textNLP);
         textMetadata = textNLP["metadata"];
         sentenceTags = textNLP["sentencetags"];
+        topicModels = textNLP["topicmodels"];
+        console.log(topicModels);
         $('#showIC').prop('checked', true);
         textICVis($("#transContent"), textMetadata);
         var tagListHTML = makeWordList(lowerCaseLines, textMetadata,
@@ -1376,6 +1515,28 @@ window.onload = function () {
                                       lowerCaseLines,
                                       sentenceTags,
                                       textMetadata);
+
+
+      // Show interactive view of topics generated
+      var topicArray = Object.keys(topicModels);
+      topicArray.sort();
+      for (var i=0;i<topicArray.length;i++){
+        var topicID = topicArray[i];
+        var keyWordArray = topicModels[topicID];
+        var keyWordSpans = "<p>"
+        for (var j=0;j<keyWordArray.length;j++){
+          keyWordSpans += "<span>"+keyWordArray[j]+"</span>"+", ";
+        }
+        keyWordSpans += "</p>";
+        $('#topicsTable').append(
+            "<tr id='"+topicID+"'>"+
+              "<td style='font-size: 8pt; white-space: nowrap'>"+ 
+                topicID + "</td>" +
+              "<td>" + keyWordSpans + "</td>"+
+            "</tr>");
+      }
+
+
     });
 
 

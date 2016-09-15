@@ -8,6 +8,10 @@ from nltk.tokenize import sent_tokenize
 from nltk.tag import StanfordNERTagger
 from nltk.internals import find_jars_within_path
 from nltk.tag import StanfordPOSTagger
+from nltk.corpus import stopwords
+from gensim import corpora, models, similarities
+from collections import defaultdict
+from nltk.stem.porter import PorterStemmer
 import re
 
 import itertools
@@ -31,6 +35,75 @@ POSTaggerPath = "C:/StanfordPOS/models/"
 POSTagger = 'english-bidirectional-distsim.tagger'
 POSModel = POSTaggerPath+POSTagger
 st = StanfordPOSTagger(POSModel, POSJar)
+
+# Create p_stemmer of class PorterStemmer
+p_stemmer = PorterStemmer()
+
+
+def genTopicModels(inputList, numTopics, numWords):
+    docCollection = []
+    currentIndex = -1
+    # combine every one-minute segment of the conversation into a single
+    # string
+    for index, row in enumerate(inputList):
+        if len(row) == 4:
+            if (index <= currentIndex):
+                continue
+            timeStamp = row[0]
+            currentCollection = ""
+            for rInd, restRow in enumerate(inputList[index:]):
+                if restRow[0] == timeStamp:
+                    currentCollection += restRow[3]
+                    currentIndex = rInd + index
+                else :
+                    docCollection.append(currentCollection)
+                    break
+
+    # finally add the last one-minute chunk to the document collection
+    # (the list would have run out of indices before this was added)
+    docCollection.append(currentCollection)
+
+    specialString = "!@#$%^&*()[]{};:,./<>?\|`~=_+-'"
+    filteredDocs = []
+    for doc in docCollection:
+        sentLower = doc.lower()
+        sentence_filt = sentLower.translate \
+                         ({ord(c): " " for c in specialString})
+        filteredDocs.append(sentence_filt)
+
+    # reomve stop words + a list of filler words that may be provided by
+    # the user later
+    fillerWords = ["um", "like", "know", "yeah", "ah", "think", "gonna",
+                   "unintelligible", "maybe", "one", "m", "re","ll",
+                   "t", "ve"]
+    stoplist = stopwords.words("english") + fillerWords
+    texts = [ [word for word in document.lower().split()
+                    if word not in stoplist]
+              for document in filteredDocs]
+    stemTexts = [ [p_stemmer.stem(i) for i in text]
+                  for text in texts]
+    # dictionary = corpora.Dictionary(stemTexts)
+    dictionary = corpora.Dictionary(texts)
+    # corpus = [dictionary.doc2bow(stemText) for stemText in stemTexts]
+    corpus = [dictionary.doc2bow(text) for text in texts]
+    ldamodel = models.ldamodel.LdaModel(corpus, num_topics=numTopics,
+            id2word=dictionary, passes=75)
+
+    topicList = ldamodel.print_topics(num_topics=numTopics, 
+                                      num_words=numWords)
+    topicObj = {}
+    for topic in topicList:
+        key = "topic "+ str(topic[0])
+        # key = topic[0]
+        topicString = topic[1]
+        topicList = topicString.replace("+", "%%")\
+                               .replace("*", "%%").split("%%")
+        listOfTopics = []
+        for topInd, topStr in enumerate(topicList):
+            if topInd % 2 != 0 :
+                listOfTopics.append(topStr.strip())
+        topicObj[key] = listOfTopics
+    return topicObj
 
 def getMetadata(textData):
     ic_freq_obj = {}
@@ -150,9 +223,20 @@ def getMetadata(textData):
         metric["POSList"] = tagCountObj[word]["POSList"]
         metric["NERList"] = tagCountObj[word]["NERList"]
         ic_freq_obj[word] = metric
+
+    # Finally, perform topic modeling if required, or just include a
+    # pre-calculated list of topics (better for consistency in user
+    # studies)
+    loadTopics = 1 # change this to 1 if you want to read from file.
+    if loadTopics == 0:
+        topicsObj = genTopicModels(parsedTextArray, 3, 10)
+    else :
+        with open('./public/pythonscripts/topics.json') as tObj:
+            topicsObj = json.load(tObj)
     nlpOutputObj = {}
     nlpOutputObj["metadata"] = ic_freq_obj
     nlpOutputObj["sentencetags"] = combinedTagList
+    nlpOutputObj["topicmodels"] = topicsObj
     # nlpOutputStr = str(nlpOutputObj)
     nlpOutputStr = json.dumps(nlpOutputObj)
     # JSON with single quotes gets vomited on at the client end, so

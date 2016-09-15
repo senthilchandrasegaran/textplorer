@@ -136,17 +136,17 @@
                   </td>
                   <td>
                     <label>
-                      <input type="checkbox" id="showVerbs" />
-                      <text class="verbs">Verbs</verbs>
-                    </label>
-                    [<span id="verbCount"></span>]
-                  </td>
-                  <td>
-                    <label>
                       <input type="checkbox" id="showAdjectives" />
                       <text class="adjectives">Adjectives</text>
                     </label>
                     [<span id="adjCount"></span>]
+                  </td>
+                  <td>
+                    <label>
+                      <input type="checkbox" id="showVerbs" />
+                      <text class="verbs">Verbs</verbs>
+                    </label>
+                    [<span id="verbCount"></span>]
                   </td>
                   <td>
                     <label>
@@ -172,7 +172,7 @@
         <ul class="tabs">
           <li><a href="#tab1">View</a></li>
           <li><a href="#tab2">Add/ Edit</a></li>
-          <li><a href="#tab3">Distribution</a></li>
+          <li><a href="#tab3">Topic Suggestions</a></li>
         </ul>
         <div class="clr"></div>
         <section class="block">
@@ -192,7 +192,9 @@
             </div>
           </article>
           <article id="tab3">
-            <div id="totalProtocols"> </div>
+            <div id="topics">
+              <table id="topicsTable"></table>
+            </div>
           </article>
         </section>
       </section>

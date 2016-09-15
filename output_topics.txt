@@ -1,0 +1,3 @@
+(0, '0.014*tree + 0.013*zip + 0.012*background + 0.012*one + 0.010*house + 0.010*would + 0.010*line + 0.010*things + 0.009*kids + 0.008*guys')
+(1, '0.018*kids + 0.014*tree + 0.013*would + 0.012*one + 0.010*could + 0.009*camp + 0.008*incorporate + 0.008*back + 0.008*see + 0.007*lot')
+(2, '0.014*really + 0.010*go + 0.009*may + 0.009*house + 0.009*kids + 0.008*line + 0.008*want + 0.008*zip + 0.008*tree + 0.007*camp')

@@ -146,6 +146,9 @@ path.link {
 }
 
 #transContent{
+  font-family: Roboto;
+  font-weight: 400;
+  font-size: 11pt;
   float: left;
   height: 100%;
   width:100%;
@@ -170,6 +173,16 @@ path.link {
 }
 .header:hover{
   font-weight: bold;
+}
+
+#topicsTable{
+  list-style: none;
+  list-style-type: none;
+  padding-left: 5px;
+  padding-right: 5px;
+  font-family: Roboto;
+  font-weight: 400;
+  font-size: 11pt;
 }
 
 #protocolContent{
@@ -235,57 +248,57 @@ input[type=checkbox]{
 }
 
 .people{
-    background-color: #fbb4ae;
-    border-color: #fbb4ae;
+    background-color: rgba(251,128,114, 0.4)!important;
+    border-color: rgba(251,128,114, 0.4);
     padding: 2px;
     border-radius: 4px;
 }
 
 .places{
-    background-color: #b3cde3;
-    border-color: #b3cde3;
+    background-color: rgba(128,177,211,0.5)!important;
+    border-color: rgba(128,177,211,0.5);
     padding: 2px;
     border-radius: 4px;
 }
 
 .orgs{
-    background-color: #ffffcc;
+    background-color: #ffffcc!important;
     border-color: #ccebc5;
     padding: 2px;
     border-radius: 4px;
 }
 
 .nouns{
-    background-color: #decbe4;
-    border-color: #decbe4;
+    background-color: rgba(222,203,228,0.5)!important;
+    border-color: rgba(222,203,228,0.5);
     padding: 2px;
     border-radius: 4px;
 }
 
 .names{
-    background-color: #b3de69;
-    border-color: #b3de69;
+    background-color: rgba(141,211,199,0.5)!important;
+    border-color: rgba(141,211,199,0.5);
     padding: 2px;
     border-radius: 4px;
 }
 
 .verbs{
-    background-color: #ccebc5;
-    border-color: #ffffcc;
+    background-color: rgba(179,222,105,0.5)!important;
+    border-color: rgba(179,222,105,0.5);
     padding: 2px;
     border-radius: 4px;
 }
 
 .adjectives{
-    background-color: #ffed6f;
-    border-color: #ffed6f;
+    background-color: rgba(255,255,179,0.9)!important;
+    border-color: rgba(255,255,179,0.9);
     padding: 2px;
     border-radius: 4px;
 }
 
 .adverbs{
-    background-color: #fddaec;
-    border-color: #fddaec;
+    background-color: rgba(252,205,229,0.7)!important;
+    border-color: rgba(252,205,229,0.7);
     padding: 2px;
     border-radius: 4px;
 }

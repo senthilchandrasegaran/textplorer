@@ -271,6 +271,47 @@ function tagLines(textObj, taggedSentenceList, tagName, highlightClass){
     }
 }
 
+function returnWNTags(tagName){
+    if (["PERSON", "LOCATION"].indexOf(tagName) !== -1){
+        tagType = "NER";
+        nameTagList = [tagName];
+        console.log("Supplied tagName is a named entity.");
+    } else {
+        tagType = "POS";
+        if (tagName === "noun"){
+            console.log("Supplied tagName is a noun.");
+            nameTagList = ["NN", // common noun, singular or mass 
+                           "NNS"];  // common noun, plural
+        
+        } else if (tagName === "name") {
+            console.log("Supplied tagName is a proper noun.");
+            nameTagList = ["NNP"]; // proper noun, singular
+        } else if (tagName === "verb") {
+            console.log("Supplied tagName is a verb.");
+            nameTagList = ["VB", // verb in base form
+                           "VBD", // verb, past tense
+                           "VBG", // verb, present participle or gerund
+                           "VBN", // verb, past participle
+                           "VBP", // verb, prs.tense, not 3rd p.singular
+                           "VPZ"]; // verb, present tense, 3rd p.singular
+        } else if (tagName === "adjective") {
+            console.log("Supplied tagName is an adjective.");
+            nameTagList = ["JJ", // adjective or numeral, ordinal
+                           "JJR", // comparative adjective
+                           "JJS"]; // superlative adjective
+        } else if (tagName === "adverb"){
+            console.log("Supplied tagName is an adverb.");
+            nameTagList = ["RB", //adverb
+                           "RBR", // comparative adverb
+                           "RBS"]; // superlative adverb
+        } else {
+            console.log("Supplied tagName is not recognizable.");
+        }
+    }
+    return(nameTagList);
+}
+
+
 // Function that takes all the lines in the transcript, removes stop
 // words, and returns a list of words and their frequencies.
 // "wordsToRemove" is an optional argument. It represents a list of
@@ -606,7 +647,7 @@ function generateTransGraph(transGraphContainer, rawCaptionArray, speakerList, s
 
     var tip = d3.tip()
                 .attr('class', 'd3-tip')
-                .offset([0, 10])
+                .offset([0, 0])
                 .direction('e');
     transSvg.call(tip);
     var rects = transSvg.selectAll("rect")
@@ -622,7 +663,7 @@ function generateTransGraph(transGraphContainer, rawCaptionArray, speakerList, s
                tip.html("<font size=2 color='#fff'>"+
                    d.speaker+":  </font>"+d.dialog).show();
                // d3.select(this).attr("height", 5);
-               if (prevClickedTag === ""){
+               if ((prevClickedTag === "") && !(isRowClicked)){
                  d3.select(this).attr('fill', greenHighlight);
                }
                d3.select(this).attr('z', 50);
@@ -632,7 +673,7 @@ function generateTransGraph(transGraphContainer, rawCaptionArray, speakerList, s
              .on("mouseout", function(d){
                tip.hide();
                // d3.select(this).attr("height", d.height);
-               if (prevClickedTag === ""){
+               if ((prevClickedTag === "") && !(isRowClicked)){
                  d3.select(this).attr('fill', d.fillColor);
                }
                d3.select(this).attr('z', 1);
@@ -727,7 +768,7 @@ function generateICGraph(transGraphContainer, rawCaptionArray, listOfLowerCaseLi
     var wtScale = d3.scale.quantize()
                     .domain([0,1])
                     //.range([0.05, 0.1, 0.2, 0.9]);
-                    .range(["#deebf7", "#c6dbef", "#6baed6", "#08519c"]);
+                    .range(["#f7fbff", "#deebf7", "#9ecae1", "#2171b5"]);
 
     var zScale = d3.scale.quantize()
                    .domain([0,1])
@@ -835,7 +876,7 @@ function generateICGraph(transGraphContainer, rawCaptionArray, listOfLowerCaseLi
 
     var tip = d3.tip()
                 .attr('class', 'd3-tip')
-                .offset([0, 10])
+                .offset([0, 0])
                 .direction('e');
     transSvg.call(tip);
     var rects = transSvg.selectAll("rect")
@@ -852,7 +893,7 @@ function generateICGraph(transGraphContainer, rawCaptionArray, listOfLowerCaseLi
              .on("mouseover", function(d){
                tip.html(d.text).show();
                // d3.select(this).attr("height", 5);
-               if (prevClickedTag === ""){
+               if ((prevClickedTag === "") || !(isRowClicked)){
                  d3.select(this).attr('fill', greenHighlight);
                }
                $("#transTable tr").eq(d.lineInd).children().last()
@@ -861,7 +902,7 @@ function generateICGraph(transGraphContainer, rawCaptionArray, listOfLowerCaseLi
              .on("mouseout", function(d){
                tip.hide();
                // d3.select(this).attr("height", d.height);
-               if (prevClickedTag === ""){
+               if ((prevClickedTag === "") || !(isRowClicked)){
                  d3.select(this).attr('fill', d.fillColor);
                }
                $("#transTable").find("td").removeClass("hoverHighlight");
@@ -1083,7 +1124,7 @@ function generateMultiWordGraphs(transGraphContainer, rawCaptionArray, listOfLow
              .attr("class", function(d) {return d.rectClass;})
              .on("mouseover", function(d){
                tip.html(d.text).show();
-               if (prevClickedTag === ""){
+               if ((prevClickedTag === "") || !(isRowClicked)){
                  d3.select(this).attr('fill', greenHighlight);
                }
                d3.select(this).attr('z', 50);
@@ -1092,7 +1133,7 @@ function generateMultiWordGraphs(transGraphContainer, rawCaptionArray, listOfLow
              })
              .on("mouseout", function(d){
                tip.hide();
-               if (prevClickedTag === ""){
+               if ((prevClickedTag === "") || !(isRowClicked)){
                  d3.select(this).attr('fill', d.fillColor);
                }
                d3.select(this).attr('z', 1);
