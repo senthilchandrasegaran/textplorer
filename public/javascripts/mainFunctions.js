@@ -664,7 +664,7 @@ function generateTransGraph(transGraphContainer, rawCaptionArray, speakerList, s
                    d.speaker+":  </font>"+d.dialog).show();
                // d3.select(this).attr("height", 5);
                if ((prevClickedTag === "") && !(isRowClicked)){
-                 d3.select(this).attr('fill', greenHighlight);
+                 d3.select(this).attr('fill', hoverHighlight);
                }
                d3.select(this).attr('z', 50);
                $("#transTable tr").eq(i).children().last()
@@ -894,7 +894,7 @@ function generateICGraph(transGraphContainer, rawCaptionArray, listOfLowerCaseLi
                tip.html(d.text).show();
                // d3.select(this).attr("height", 5);
                if ((prevClickedTag === "") || !(isRowClicked)){
-                 d3.select(this).attr('fill', greenHighlight);
+                 d3.select(this).attr('fill', hoverHighlight);
                }
                $("#transTable tr").eq(d.lineInd).children().last()
                                   .addClass("hoverHighlight");
@@ -1125,7 +1125,7 @@ function generateMultiWordGraphs(transGraphContainer, rawCaptionArray, listOfLow
              .on("mouseover", function(d){
                tip.html(d.text).show();
                if ((prevClickedTag === "") || !(isRowClicked)){
-                 d3.select(this).attr('fill', greenHighlight);
+                 d3.select(this).attr('fill', hoverHighlight);
                }
                d3.select(this).attr('z', 50);
                $("#transTable tr").eq(d.lineInd).children().last()

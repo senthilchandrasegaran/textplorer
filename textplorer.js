@@ -1,5 +1,5 @@
 /***********************************************************************
- * GT Helper: a framework to aid the Grounded Theory Method in
+ * Textplorer: a framework to aid the Grounded Theory Method in
  * Qualitative Text Analysis
  * Code by Senthil Chandrasegaran & Karthik Badam
  **********************************************************************/
@@ -9,8 +9,8 @@
 */
 
 var express = require('express');
-var routes = require('./routes');
-var user = require('./routes/user');
+// var routes = require('./routes');
+// var user = require('./routes/user');
 var http = require('http');
 var path = require('path');
 var ejs = require('ejs');
@@ -18,10 +18,10 @@ var url = require('url');
 var resumable = require('resumable');
 var jwt = require('express-jwt');
 var app = express();
-var fs = require('fs'),
-    exec = require('child_process').exec,
-    util = require('util'),
-    admZip = require('adm-zip');
+var fs = require('fs');
+    // exec = require('child_process').exec,
+    // util = require('util'),
+    // admZip = require('adm-zip');
 var PythonShell = require('python-shell');
 
 // all environments
@@ -107,25 +107,6 @@ app.get('/receive_transcript_file', function (req, res) {
     res.end()
 });
 
-/*
- * TO ADD NEW DATASET:
- * Copy the block of code below and uncomment.
-
-*/
-
-/*
-app.post('/newDataSeries_file', function (req, res) {
-    var newDataSeriesFileParams = req.body;
-    newDataSeriesOutput.target = newDataSeriesFileParams.newDataSeriesFile;
-    res.end();
-});
-
-app.get('/receive_newDataSeries_file', function (req, res) {
-    res.writeHead(200);
-    res.write(newDataSeriesOutput.target);
-    res.end()
-});
-*/
 /**********END OF HANDLING UPLOADED DATA : HOST URL********************/
 
 /************************DATA ON CLIENT PAGE***************************/
@@ -136,17 +117,6 @@ app.get('/main', function (req, res) {
         inputtrans: inputtrans,
         outputtrans: outputtrans,
         outputInfoContent: outputInfoContent,
-     /*
-      * TO ADD NEW DATASET:
-      * Copy-Paste the block of code below,
-      * Uncomment it,
-      * Then rename all occurrences of 'newDataSeries'
-      * to a more meaningful name.
-     */
-     /*
-        newDataSeries: newDataSeries,
-        newDataSeriesOutput: newDataSeriesOutput,
-     */
     });
 });
 /**********************END OF DATA ON CLIENT PAGE**********************/

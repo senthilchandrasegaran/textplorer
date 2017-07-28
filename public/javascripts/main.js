@@ -53,7 +53,7 @@ var selectedIndices = [];
 
 // list of colors used
 var oldHighlighting = "rgba(220, 138, 12, 0.4)";
-var greenHighlight = "rgba(232, 138, 12, 1)";
+var hoverHighlight = "rgba(232, 138, 12, 1)";
 
 var transGraphColor = "rgba(123, 123, 123, 0.2)";
 var boldHighlightColor = "rgba(255, 127, 0, 0.8)";
