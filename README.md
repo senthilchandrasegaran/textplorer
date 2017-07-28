@@ -75,7 +75,7 @@ libraries.
 
 This installs all required modules.
 
-####NOTE :
+### NOTE :
 This setup has been tested only on Windows.
 Updating the path variables in the file
 `public/pythonscripts/infoContent.py` to reflect the paths of the
