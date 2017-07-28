@@ -24,7 +24,8 @@ Chandrasegaran, S., Badam, S.K., Kisselburgh, L., Elmqvist, N., and
 Ramani, K. _Integrating Visual Analytics Support for Grounded Theory
 Practice in Qualitative Text Analysis_. Computer Graphics Forum (Proc.
 EuroVis), 36 (3), pp. 201–212, 2017.
-[Download Paper](https://senthilchandrasegaran.github.io/pages/pubs/pdfs/gthelper.pdf)
+
+[(**Download Paper**)](https://senthilchandrasegaran.github.io/pages/pubs/pdfs/gthelper.pdf)
 
 [![Click to play video](./textplorer_video.png)](https://vimeo.com/194922904 "Click to play video")
 
