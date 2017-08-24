@@ -83,4 +83,4 @@ Stanford NER and POS Taggers should work, but proceed at your own risk.
 
 ## License
 Released under [BSD license](https://opensource.org/licenses/BSD-3-Clause).
-Copyright 2016 [Senthil Chandrasegaran](https://github.com/senthilchandrasegaran), [Sriram Karthik Badam](https://github.com/karthikbadam).
+Copyright 2017 [Senthil Chandrasegaran](https://github.com/senthilchandrasegaran).
