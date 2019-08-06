@@ -49,8 +49,7 @@ So before installing Textplorer, perform the following steps first.
   and extract the files. Copy the folder `nlp` from
   `stanford-english-corenlp-20YY-MM-DD/edu/stanford/` and place it in
   `$HOME/StanfordNER`.
-5. Download the [Stanford POS Tagger]() and place it in a folder, say
-   `$HOME/StanfordPOS`. Add this folder to your `$PATH` variable.
+5. Download the [Stanford POS Tagger](https://nlp.stanford.edu/software/stanford-postagger-2018-10-16.zip), extract the contents into a folder, say `$HOME/StanfordPOS`. Add this folder to your `$PATH` variable.
 6. Make sure Node.js and Python are installed on your system
 7. Install the [NLTK package](http://www.nltk.org/install.html) for
   Python.
