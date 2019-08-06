@@ -15,3 +15,4 @@ public/userlog/*.csv
 public/clicklog/*.csv
 public/pythonscripts/*.txt
 public/pythonscripts/*.json
+.DS_Store
