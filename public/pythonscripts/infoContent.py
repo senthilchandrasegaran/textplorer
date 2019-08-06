@@ -6,7 +6,7 @@ from nltk.corpus import stopwords
 from nltk.corpus.reader.wordnet import information_content
 from nltk.tokenize import sent_tokenize
 from nltk.tag import StanfordNERTagger
-from nltk.internals import find_jars_within_path
+# from nltk.internals import find_jars_within_path
 from nltk.tag import StanfordPOSTagger
 from nltk.corpus import stopwords
 from gensim import corpora, models, similarities
@@ -22,19 +22,17 @@ from collections import OrderedDict
 from collections import Counter
 import json
 
-brown_ic = wordnet_ic.ic('ic-brown.dat')
+# brown_ic = wordnet_ic.ic('ic-brown.dat')
 ic_bnc_plus1 = wordnet_ic.ic('ic-bnc-add1.dat')
-NERModelPath = "C:/StanfordNER/nlp/models/ner/"
+NERModelPath = '/Users/senthil/stanfordnlp_resources/StanfordNER/nlp/models/ner/'
 NERModel = "english.conll.4class.caseless.distsim.crf.ser.gz"
-    # NOTE : the 4 classes are Person, Location, Organization, Misc
+# NOTE : the 4 classes are Person, Location, Organization, Misc
 NER = StanfordNERTagger(NERModelPath + NERModel)
 
-# FOR POS Tagger:
-POSJar = "C:/StanfordPOS/stanford-postagger.jar"
-POSTaggerPath = "C:/StanfordPOS/models/"
-POSTagger = 'english-bidirectional-distsim.tagger'
-POSModel = POSTaggerPath+POSTagger
-st = StanfordPOSTagger(POSModel, POSJar)
+# Add the jar and model via their path (instead of setting environment variables):
+pos_jar = '/Users/senthil/stanfordnlp_resources/StanfordPOS/stanford-postagger-3.9.2.jar'
+pos_model = '/Users/senthil/stanfordnlp_resources/StanfordPOS/models/english-bidirectional-distsim.tagger'
+st = StanfordPOSTagger(pos_model, pos_jar, encoding='utf8')
 
 # Create p_stemmer of class PorterStemmer
 p_stemmer = PorterStemmer()
@@ -47,7 +45,7 @@ def genTopicModels(inputList, numTopics, numWords):
     # string
     for index, row in enumerate(inputList):
         if len(row) == 4:
-            if (index <= currentIndex):
+            if index <= currentIndex:
                 continue
             timeStamp = row[0]
             currentCollection = ""
@@ -55,7 +53,7 @@ def genTopicModels(inputList, numTopics, numWords):
                 if restRow[0] == timeStamp:
                     currentCollection += restRow[3]
                     currentIndex = rInd + index
-                else :
+                else:
                     docCollection.append(currentCollection)
                     break
 
@@ -73,43 +71,45 @@ def genTopicModels(inputList, numTopics, numWords):
 
     # reomve stop words + a list of filler words that may be provided by
     # the user later
-    fillerWords = ["um", "like", "know", "yeah", "ah", "think", "gonna",
-                   "unintelligible", "maybe", "one", "m", "re","ll",
-                   "t", "ve"]
+    fillerWords = [
+        "um", "like", "know", "yeah", "ah", "think", "gonna", "unintelligible",
+        "maybe", "one", "m", "re", "ll", "t", "ve"
+    ]
     stoplist = stopwords.words("english") + fillerWords
-    texts = [ [word for word in document.lower().split()
-                    if word not in stoplist]
-              for document in filteredDocs]
-    stemTexts = [ [p_stemmer.stem(i) for i in text]
-                  for text in texts]
+    texts = [[
+        word for word in document.lower().split() if word not in stoplist
+    ] for document in filteredDocs]
+    stemTexts = [[p_stemmer.stem(i) for i in text] for text in texts]
     # dictionary = corpora.Dictionary(stemTexts)
     dictionary = corpora.Dictionary(texts)
     # corpus = [dictionary.doc2bow(stemText) for stemText in stemTexts]
     corpus = [dictionary.doc2bow(text) for text in texts]
-    ldamodel = models.ldamodel.LdaModel(corpus, num_topics=numTopics,
-            id2word=dictionary, passes=75)
+    ldamodel = models.ldamodel.LdaModel(corpus,
+                                        num_topics=numTopics,
+                                        id2word=dictionary,
+                                        passes=75)
 
-    topicList = ldamodel.print_topics(num_topics=numTopics, 
-                                      num_words=numWords)
+    topicList = ldamodel.print_topics(num_topics=numTopics, num_words=numWords)
     topicObj = {}
     for topic in topicList:
-        key = "topic "+ str(topic[0])
+        key = "topic " + str(topic[0])
         # key = topic[0]
         topicString = topic[1]
         topicList = topicString.replace("+", "%%")\
                                .replace("*", "%%").split("%%")
         listOfTopics = []
         for topInd, topStr in enumerate(topicList):
-            if topInd % 2 != 0 :
+            if topInd % 2 != 0:
                 listOfTopics.append(topStr.strip())
         topicObj[key] = listOfTopics
     return topicObj
+
 
 def getMetadata(textData):
     ic_freq_obj = {}
     textArray = json.dumps(textData).split("\\n")
     parsedTextArray = [x.split(';') for x in textArray]
-    sentenceList = [x[3] for x in parsedTextArray if len(x)==4]
+    sentenceList = [x[3] for x in parsedTextArray if len(x) == 4]
     filteredSentenceList = []
     filteredWords = []
     nestedWordList = []
@@ -123,7 +123,7 @@ def getMetadata(textData):
         wordTokens = sentence_filt.split()
         nestedWordList.append(wordTokens)
         tokens.extend(wordTokens)
-        filteredSentenceList.append(sentence_filt);
+        filteredSentenceList.append(sentence_filt)
 
     #### COMPUTE POS AND NER TAGS FOR EACH LINE ####
     posTupleList = st.tag_sents(nestedWordList)
@@ -138,7 +138,7 @@ def getMetadata(textData):
         for j, posTuple in enumerate(posTuples):
             NERTuple = NERTuples[j]
             word = posTuple[0]
-            
+
             # posTuple and NERTuple represent the same word and its
             # POS/NER tag.
             # These will now be combined to the form:
@@ -167,8 +167,9 @@ def getMetadata(textData):
     punctuationLeftovers = ["s", "re", 'na', "m", "em", "d"]
     completeStopwords = stopwords.words("english") +\
                         punctuationLeftovers
-    filtered_tokens = [w.lower() for w in tokens if not
-                       w.lower() in set(completeStopwords)]
+    filtered_tokens = [
+        w.lower() for w in tokens if not w.lower() in set(completeStopwords)
+    ]
     frequencyDict = Counter(filtered_tokens)
     uniquetokens = list(set(filtered_tokens))
     icArray = []
@@ -188,13 +189,13 @@ def getMetadata(textData):
             if tempNum == 1:
                 infoContentValue = information_content(synsetItem,
                                                        ic_bnc_plus1)
-                if infoContentValue >= 1e+300 :
+                if infoContentValue >= 1e+300:
                     outLiers.append((token, infoContentValue))
-                else :
+                else:
                     icArray.append((token, infoContentValue))
                     if maxInfoContent < infoContentValue:
                         maxInfoContent = infoContentValue
-            else :
+            else:
                 icArray.append((token, 0.0))
         ####
         POSList = []
@@ -227,10 +228,10 @@ def getMetadata(textData):
     # Finally, perform topic modeling if required, or just include a
     # pre-calculated list of topics (better for consistency in user
     # studies)
-    loadTopics = 1 # change this to 1 if you want to read from file.
+    loadTopics = 0  # change this to 1 if you want to read from file.
     if loadTopics == 0:
         topicsObj = genTopicModels(parsedTextArray, 3, 10)
-    else :
+    else:
         with open('./public/pythonscripts/topics.json') as tObj:
             topicsObj = json.load(tObj)
     nlpOutputObj = {}
@@ -243,8 +244,9 @@ def getMetadata(textData):
     # let's change all of those.
     # nlpOutput = nlpOutputStr.replace("'", '"')
     with open('./public/pythonscripts/outfile.txt', 'w') as fObj:
-            fObj.write(nlpOutputStr)
+        fObj.write(nlpOutputStr)
     return nlpOutputStr
 
-words =  sys.stdin.read()
+
+words = sys.stdin.read()
 print(getMetadata(words))

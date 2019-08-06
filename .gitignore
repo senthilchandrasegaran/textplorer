@@ -11,7 +11,7 @@ git_commands.txt
 .tern-project
 
 node_modules/
-public/userlog/
-public/clicklog/
+public/userlog/*.csv
+public/clicklog/*.csv
 public/pythonscripts/*.txt
 public/pythonscripts/*.json
