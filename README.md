@@ -40,26 +40,31 @@ So before installing Textplorer, perform the following steps first.
 ### Install Stanford NER & POS Taggers
 
 1. Install JDK (v > 1.8), and add the path to the bin file (e.g.
-  `C:/Program Files/Java/jdk1.8.0_101/bin` to the environment variable
-  `JAVAHOME`. Create the variable if it does not exist already.
+  `C:/Program Files/Java/jdk1.8.0_101/bin` or `/usr/bin/java` to the environment variable `JAVAHOME` (for Windows), or to your `$PATH` variable (for Linux/OSX).
 2. Download the [Stanford Named Entity Recognizer](http://nlp.stanford.edu/software/CRF-NER.html#Download)
-  and extract its contents to a folder, say `C:/StanfordNER/`
-3. Add `C:/StanfordNER` to the `CLASSPATH` environment variable (create
-the variable if it does not exist).
-4. Download the [Stanford CoreNLP models](http://nlp.stanford.edu/software/stanford-english-corenlp-2015-12-11-models.jar)
+  and extract its contents to a folder, say `$HOME/StanfordNER/`
+3. Add `$HOME/StanfordNER` to the `CLASSPATH` environment variable (for
+   windows) or to your `$PATH` variable if linux/OSX.
+4. Download the [Stanford CoreNLP models](http://nlp.stanford.edu/software/stanford-english-corenlp-2018-10-05-models.jar)
   and extract the files. Copy the folder `nlp` from
   `stanford-english-corenlp-20YY-MM-DD/edu/stanford/` and place it in
-  `C:/StanfordNER`.
+  `$HOME/StanfordNER`.
+5. Download the [Stanford POS Tagger]() and place it in a folder, say
+   `$HOME/StanfordPOS`. Add this folder to your `$PATH` variable.
+6. Make sure Node.js and Python are installed on your system
+7. Install the [NLTK package](http://www.nltk.org/install.html) for
+  Python.
+8. Run python and the command line and type ``import nltk``, followed by
+   ``nltk.download()``. This opens a download window titled "nltk
+   downloader". Select the "Corpora" tab, and download the "wordnet_ic",
+   and "stopwords" corpora by double-clicking on each. Close the window.
 
 ### Install Textplorer
 Textplrorer's server uses the [Node.js](https://nodejs.org/) runtime, so
 it needs to be installed first, in order to install all related
 libraries.
 
-1. Make sure Node.js and Python are installed on your system
-2. Install the [NLTK package](http://www.nltk.org/install.html) for
-  Python.
-2. Download the source code
+1. Download the source code
   [as a zip file](https://github.com/senthilchandrasegaran/textplorer/archive/master.zip)
   or clone the repository by typing the following command on the terminal:
 
@@ -67,7 +72,7 @@ libraries.
    $ git clone https://github.com/senthilchandrasegaran/textplorer.git
    ```
 
-3. On the Node.js Command Prompt (for Windows) or Terminal (for OS X), navigate to the main folder (the one that contains the file `textplorer.js`) and type in:
+2. On the Node.js Command Prompt (for Windows) or Terminal (for OS X), navigate to the main folder (the one that contains the file `textplorer.js`) and type in:
 
    ```shell
    $ npm install
@@ -76,10 +81,9 @@ libraries.
 This installs all required modules.
 
 **NOTE:**
-This setup has been tested only on Windows.
-Updating the path variables in the file
+It is wise to update the path variables in the file
 `public/pythonscripts/infoContent.py` to reflect the paths of the
-Stanford NER and POS Taggers should work, but proceed at your own risk.
+Stanford NER and POS Taggers, instead of relying on the `$PATH` variable setting. Make sure you have the absolute path (paths starting with `~/` or `$HOME` will not work.
 
 ## License
 Released under [BSD license](https://opensource.org/licenses/BSD-3-Clause).
