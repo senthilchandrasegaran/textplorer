@@ -37,7 +37,7 @@ We use the Stanford Parts-of-Speech (POS) Tagger and the Stanford Named
 Entity Recognition (NER) Tagger, which require a little setup in Java.
 So before installing Textplorer, perform the following steps first.
 
-### Install Stanford NER & POS Taggers
+### Install Dependences
 
 1. Install JDK (v > 1.8), and add the path to the bin file (e.g.
   `C:/Program Files/Java/jdk1.8.0_101/bin` or `/usr/bin/java` to the environment variable `JAVAHOME` (for Windows), or to your `$PATH` variable (for Linux/OSX).
@@ -56,7 +56,7 @@ So before installing Textplorer, perform the following steps first.
 8. Run python and the command line and type ``import nltk``, followed by
    ``nltk.download()``. This opens a download window titled "nltk
    downloader". Select the "Corpora" tab, and download the "wordnet_ic",
-   and "stopwords" corpora by double-clicking on each. Close the window.
+   and "stopwords" corpora.
 
 ### Install Textplorer
 Textplrorer's server uses the [Node.js](https://nodejs.org/) runtime, so
@@ -82,7 +82,7 @@ This installs all required modules.
 **NOTE:**
 It is wise to update the path variables in the file
 `public/pythonscripts/infoContent.py` to reflect the paths of the
-Stanford NER and POS Taggers, instead of relying on the `$PATH` variable setting. Make sure you have the absolute path (paths starting with `~/` or `$HOME` will not work.
+Stanford NER and POS Taggers, instead of relying on the `$PATH` variable setting. Make sure you have the absolute path (paths starting with `~/` or `$HOME` will not work.)
 
 ## License
 Released under [BSD license](https://opensource.org/licenses/BSD-3-Clause).
