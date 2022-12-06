@@ -13,7 +13,7 @@
     "cookie-parser": "*",
     "ejs": "^2.6.2",
     "errorhandler": "*",
-    "express": "^4.17.1",
+    "express": "^4.18.2",
     "express-jwt": "*",
     "express-session": "*",
     "http": "*",
